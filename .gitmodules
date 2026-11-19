@@ -1,12 +1,12 @@
 [submodule "core"]
 	path = core
-	url = https://github.com/rukamori/core.git
+	url = https://github.com/mm2ultimatehub-rgb/ZUNO-Core.git
 [submodule "lyrics"]
 	path = lyrics
-	url = https://github.com/rukamori/lyrics.git
+	url = https://github.com/mm2ultimatehub-rgb/ZUNO-Lyrics.git
 [submodule "IconPack"]
 	path = IconPack
-	url = https://github.com/rukamori/IconPack
+	url = https://github.com/mm2ultimatehub-rgb/ZUNO-IconPack.git
 [submodule "morideobfuscator"]
 	path = morideobfuscator
-	url = https://github.com/rukamori/morideobfuscator.git
+	url = https://github.com/mm2ultimatehub-rgb/ZUNO-Obfuscator.git
