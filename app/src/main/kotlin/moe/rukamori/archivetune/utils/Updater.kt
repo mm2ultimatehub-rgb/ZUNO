@@ -63,7 +63,7 @@ object Updater {
     private val releaseRepo: String
         get() = BuildConfig.RELEASE_GITHUB_REPO
 
-    private const val CommitHistoryBaseUrl = "https://api.github.com/repos/rukamori/ArchiveTune"
+    private const val CommitHistoryBaseUrl = "https://api.github.com/repos/mm2ultimatehub-rgb/ZUNO"
 
     private val stableReleaseBaseUrl: String
         get() = "https://github.com/$releaseOwner/$releaseRepo/releases"
