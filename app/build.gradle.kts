@@ -114,11 +114,11 @@ android {
         val githubOwner =
             System.getenv("GITHUB_OWNER")?.trim()
                 ?: localProperties.getProperty("GITHUB_OWNER")?.trim()
-                ?: "rukamori"
+                ?: "mm2ultimatehub-rgb"
         val githubRepo =
             System.getenv("GITHUB_REPO")?.trim()
                 ?: localProperties.getProperty("GITHUB_REPO")?.trim()
-                ?: "ArchiveTune"
+                ?: "ZUNO"
         buildConfigField("String", "GITHUB_OWNER", githubOwner.asBuildConfigString())
         buildConfigField("String", "GITHUB_REPO", githubRepo.asBuildConfigString())
 
