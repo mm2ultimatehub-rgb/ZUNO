@@ -1,8 +1,8 @@
 <div align="center">
 
-  <img src="https://github.com/rukamori/ArchiveTune/blob/main/fastlane/metadata/android/en-US/images/icon.png" width="160" height="160" alt="ArchiveTune Logo" style="border-radius: 22%">
+  <img src="https://github.com/rukamori/ArchiveTune/blob/main/fastlane/metadata/android/en-US/images/icon.png" width="160" height="160" alt="ZUNO app logo placeholder" style="border-radius: 22%">
 
-  <h1>ArchiveTune</h1>
+  <h1>ZUNO</h1>
 
   <p align="center">
     <a href="README.md">
@@ -14,7 +14,7 @@
   </p>
 
   <p align="center">
-    <strong>Redefining the YouTube Music Experience on Android.</strong>
+    <strong>A music experience shaped around you.</strong>
     <br />
     <em>It’s high-performance, privacy-focused, and packed with features for people who really care about their experience.</em>
   </p>
@@ -72,11 +72,11 @@
 ---
 
 > [!WARNING]
-**Forks are not supported in any way.**  
-We do not provide support, maintenance, troubleshooting, or assistance for any forked version of this project.
-If you choose to use a fork, you do so at your own risk.
+**Upstream project notice:** ZUNO is an independently maintained fork. The original project maintainers do not provide support for this fork.  
+ArchiveTune maintainers do not provide support, maintenance, troubleshooting, or assistance for ZUNO.
+ZUNO is maintained separately; report ZUNO-specific issues in the ZUNO repository.
 
-**ArchiveTune** isn’t just another generic YouTube Music wrapper. It’s a fully custom-built player made with kotlin and jetpack compose, because we think your music should stay private, look clean, and work exactly the way you expect.
+**ZUNO** is a customized fork built on the ArchiveTune project. It’s a fully custom-built player made with kotlin and jetpack compose, because we think your music should stay private, look clean, and work exactly the way you expect.
 
 ---
 
