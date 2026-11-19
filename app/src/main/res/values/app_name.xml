@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">ArchiveTune</string>
+    <string name="app_name" translatable="false">ZUNO</string>
     <string name="widget_description">Slim player with shaped artwork that expands into full playback controls</string>
     <string name="widget_album_art_description">Album cover framed on a blurred artwork backdrop with a play button</string>
     <string name="widget_now_playing_card_description">Artwork-tinted card with track details, progress, and playback controls</string>
