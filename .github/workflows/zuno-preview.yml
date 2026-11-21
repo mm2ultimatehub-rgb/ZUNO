@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - feature/dalga-glass-player
+    paths:
+      - app/build.gradle.kts
   workflow_dispatch:
 
 permissions:
