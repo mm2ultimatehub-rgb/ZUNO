@@ -39,14 +39,14 @@ fun ZunoLogoImage(
     val logoState by ZunoLogoStore.state.collectAsState()
 
     AnimatedContent(
-        targetState = logoState.selectedId,
+        targetState = logoState.selectedId to logoState.isInitialized,
         transitionSpec = {
             (fadeIn() + scaleIn(initialScale = 0.88f)) togetherWith
                 (fadeOut() + scaleOut(targetScale = 1.04f))
         },
         label = "zunoLogoChange",
         modifier = modifier,
-    ) { selectedId ->
+    ) { (selectedId, _) ->
         val file = ZunoLogoStore.logoFile(context, selectedId)
             ?: ZunoLogoStore.logoFile(context, ZunoLogoCatalog.DefaultId)
         AsyncImage(
