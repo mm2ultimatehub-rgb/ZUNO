@@ -299,6 +299,7 @@ import moe.rukamori.archivetune.ui.component.shimmer.ShimmerTheme
 import moe.rukamori.archivetune.ui.menu.YouTubeSongMenu
 import moe.rukamori.archivetune.ui.player.BottomSheetPlayer
 import moe.rukamori.archivetune.ui.player.EditorialMorphShape
+import moe.rukamori.archivetune.branding.ZunoLogoImage
 import moe.rukamori.archivetune.ui.screens.library.LibraryHeaderContentPadding
 import moe.rukamori.archivetune.ui.screens.LOGIN_ROUTE
 import moe.rukamori.archivetune.ui.screens.LOGIN_URL_ARGUMENT
@@ -3350,11 +3351,9 @@ private fun TopAppBarBrand() {
                     .clip(EditorialMorphShape(morph, morphProgress))
                     .background(badgeColor),
         ) {
-            Icon(
-                painter = painterResource(R.drawable.about_appbar),
+            ZunoLogoImage(
                 contentDescription = null,
-                tint = badgeContentColor,
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier.size(32.dp),
             )
         }
         Text(
