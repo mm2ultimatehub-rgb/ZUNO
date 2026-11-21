@@ -90,7 +90,7 @@ jobs:
 
           BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
           ALIGNED="$RUNNER_TEMP/zuno-aligned.apk"
-          SIGNED="$RUNNER_TEMP/ZUNO-universal-signed.apk"
+          SIGNED="$RUNNER_TEMP/app-gms-mobile-universal-release.apk"
           "$BUILD_TOOLS/zipalign" -f -P 16 4 "$APK" "$ALIGNED"
           KEY_PASS="${KEY_PASS_INPUT:-$STORE_PASS}"
           export KEY_PASS STORE_PASS
@@ -102,7 +102,7 @@ jobs:
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: zuno-universal-release-signed
+          name: app-gms-mobile-universal-release-signed
           path: ${{ steps.signed.outputs.path }}
           if-no-files-found: error
           retention-days: 14
