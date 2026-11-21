@@ -1426,7 +1426,7 @@ private fun OnboardingPageId.heroPolygon(): RoundedPolygon =
 @DrawableRes
 private fun OnboardingPageId.heroIconResId(): Int =
     when (this) {
-        OnboardingPageId.WELCOME -> R.drawable.app_icon_small
+        OnboardingPageId.WELCOME -> R.drawable.zuno_icon
         OnboardingPageId.PERMISSIONS -> R.drawable.security
         OnboardingPageId.LOGIN -> R.drawable.account
         OnboardingPageId.COMMUNITY -> R.drawable.favorite_border
