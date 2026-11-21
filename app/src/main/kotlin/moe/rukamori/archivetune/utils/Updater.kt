@@ -298,7 +298,7 @@ object Updater {
                 val response = client.get("https://api.github.com/repos/$releaseOwner/$releaseRepo/releases/tags/${Uri.encode(tag)}") {
                     headers {
                         append("Accept", "application/vnd.github+json")
-                        append("User-Agent", "ArchiveTune")
+                        append("User-Agent", "ZUNO")
                     }
                     timeout { requestTimeoutMillis = 10_000 }
                 }
@@ -332,7 +332,7 @@ object Updater {
                 timeout { requestTimeoutMillis = 10_000 }
                 headers {
                     append("Accept", "application/vnd.github+json")
-                    append("User-Agent", "ArchiveTune")
+                    append("User-Agent", "ZUNO")
                     if (!cachedEtag.isNullOrBlank()) {
                         append("If-None-Match", cachedEtag)
                     }
