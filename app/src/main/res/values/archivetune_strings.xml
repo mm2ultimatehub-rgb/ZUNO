@@ -184,7 +184,7 @@
     <string name="news_no_results_desc">Try a different search term.</string>
     <string name="news_important_badge">Important</string>
     <string name="news_tooltip_title">New Announcements</string>
-    <string name="news_tooltip_body">You have unread announcements from developers.</string>
+    <string name="news_tooltip_body">You have unread announcements from ZUNO.</string>
     <string name="news_author_on_date">%1$s · %2$s</string>
     <plurals name="news_article_count">
         <item quantity="one">%d article</item>
