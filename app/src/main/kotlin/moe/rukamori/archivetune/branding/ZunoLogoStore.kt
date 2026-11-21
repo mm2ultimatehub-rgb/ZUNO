@@ -10,7 +10,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
-import org.json.JSONObject
 import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +48,7 @@ object ZunoLogoStore {
     private const val PreferencesName = "zuno_logo_preferences"
     private const val SelectedIdKey = "selected_logo_id"
     private const val CustomFilesKey = "custom_logo_files"
-    private const val PresetAssetPath = "zuno_logos.json"
+    private const val PresetAssetDirectory = "zuno_logos"
     private const val CustomPrefix = "custom:"
     private const val MaxImportBytes = 15L * 1024L * 1024L
     private const val MaxImageEdge = 1024
@@ -196,13 +195,13 @@ object ZunoLogoStore {
 
     private fun ensurePresetFiles(context: Context) {
         val directory = customDirectory(context).apply { mkdirs() }
-        val encoded = context.assets.open(PresetAssetPath).bufferedReader().use { it.readText() }
-        val logos = JSONObject(encoded)
         ZunoLogoCatalog.presets.forEach { preset ->
             val target = File(directory, "preset_${preset.id}.webp")
             if (!target.isFile || target.length() == 0L) {
-                val bytes = Base64.decode(logos.getString(preset.id), Base64.DEFAULT)
-                target.writeBytes(bytes)
+                val encoded = context.assets.open("$PresetAssetDirectory/${preset.id}.webp.b64")
+                    .bufferedReader()
+                    .use { it.readText() }
+                target.writeBytes(Base64.decode(encoded, Base64.DEFAULT))
             }
         }
     }
