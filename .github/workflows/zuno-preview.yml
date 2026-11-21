@@ -40,8 +40,8 @@ jobs:
 
       - name: Set up Android SDK build tools
         run: |
-          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0" "platforms;android-37"
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses </dev/null
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
