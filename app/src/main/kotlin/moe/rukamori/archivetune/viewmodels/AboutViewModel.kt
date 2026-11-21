@@ -423,39 +423,14 @@ class AboutViewModel
                             id = "github",
                             iconResId = R.drawable.github,
                             labelResId = R.string.about_content_desc_github,
-                            url = "https://github.com/rukamori/ArchiveTune",
+                            url = "https://github.com/mm2ultimatehub-rgb/ZUNO",
                             emphasis = AboutLinkEmphasis.PRIMARY,
                         ),
                         AboutLinkUiModel(
-                            id = "website",
-                            iconResId = R.drawable.website,
-                            labelResId = R.string.about_content_desc_website,
-                            url = "https://archivetune.miuka.moe",
-                        ),
-                        AboutLinkUiModel(
-                            id = "telegram",
-                            iconResId = R.drawable.telegram,
-                            labelResId = R.string.about_content_desc_telegram,
-                            url = "https://t.me/ArchiveTuneGC",
-                        ),
-                        AboutLinkUiModel(
-                            id = "donate",
-                            iconResId = R.drawable.coffee,
-                            labelResId = R.string.about_content_desc_donate,
-                            url = "https://miuka.moe/donate",
-                            emphasis = AboutLinkEmphasis.ACCENT,
-                        ),
-                        AboutLinkUiModel(
-                            id = "discord",
-                            iconResId = R.drawable.discord,
-                            labelResId = R.string.discord,
-                            url = "https://discord.gg/archivetune",
-                        ),
-                        AboutLinkUiModel(
-                            id = "privacy_policy",
-                            iconResId = R.drawable.lock,
-                            labelResId = R.string.privacy,
-                            url = "https://archivetune.miuka.moe/privacy",
+                            id = "original_source",
+                            iconResId = R.drawable.github,
+                            labelResId = R.string.about_original_source,
+                            url = "https://github.com/rukamori/ArchiveTune",
                         ),
                     ),
                 leadDeveloper =
@@ -471,18 +446,6 @@ class AboutViewModel
                                     iconResId = R.drawable.github,
                                     labelResId = R.string.about_content_desc_github,
                                     url = "https://github.com/rukamori",
-                                ),
-                                AboutLinkUiModel(
-                                    id = "website",
-                                    iconResId = R.drawable.website,
-                                    labelResId = R.string.about_content_desc_website,
-                                    url = "https://miuka.moe",
-                                ),
-                                AboutLinkUiModel(
-                                    id = "discord",
-                                    iconResId = R.drawable.alternate_email,
-                                    labelResId = R.string.about_content_desc_discord,
-                                    url = "https://discord.com/users/886971572668219392",
                                 ),
                             ),
                     ),
@@ -684,7 +647,7 @@ class AboutViewModel
         private companion object {
             const val MaxDisplayedContributors = 20
             const val DebugBuildBadge = "DEBUG"
-            const val ContributorsReadMoreUrl = "https://github.com/rukamori/ArchiveTune/graphs/contributors"
+            const val ContributorsReadMoreUrl = "https://github.com/mm2ultimatehub-rgb/ZUNO/graphs/contributors"
             const val LrcRedUrl = "https://lrc.red"
             const val LrcRedAvatarUri =
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAAnklEQVR42u3RMQ0AQAjAQCYMvH91CAELP5JwTargIiRJkiRJkiRJkiR9VPn60gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJsBJEmSJEmSJEmSpJUNCtLbRu3GUiYAAAAASUVORK5CYII="
