@@ -1748,7 +1748,6 @@ private fun LogoPickerSection(
             ) {
                 ZunoLogoCatalog.presets.forEach { preset ->
                     LogoChoiceTile(
-                        id = preset.id,
                         title = preset.title,
                         selected = state.selectedId == preset.id,
                         file = ZunoLogoStore.logoFile(context, preset.id),
@@ -1757,7 +1756,6 @@ private fun LogoPickerSection(
                 }
                 state.customFileNames.forEach { fileName ->
                     LogoChoiceTile(
-                        id = "custom:$fileName",
                         title = "Custom",
                         selected = state.selectedId == "custom:$fileName",
                         file = ZunoLogoStore.customFile(context, fileName),
@@ -1773,7 +1771,6 @@ private fun LogoPickerSection(
 
 @Composable
 private fun LogoChoiceTile(
-    id: String,
     title: String,
     selected: Boolean,
     file: java.io.File?,
