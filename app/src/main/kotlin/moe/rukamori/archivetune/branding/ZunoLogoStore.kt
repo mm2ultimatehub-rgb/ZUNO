@@ -21,6 +21,7 @@ import java.util.UUID
 data class ZunoLogoState(
     val selectedId: String = ZunoLogoCatalog.DefaultId,
     val customFileNames: List<String> = emptyList(),
+    val isInitialized: Boolean = false,
 )
 
 data class ZunoLogoPreset(val id: String, val title: String)
@@ -77,7 +78,7 @@ object ZunoLogoStore {
             savedId.startsWith(CustomPrefix) && savedId.removePrefix(CustomPrefix) in customFiles -> savedId
             else -> ZunoLogoCatalog.DefaultId
         }
-        mutableState.value = ZunoLogoState(selectedId, customFiles)
+        mutableState.value = ZunoLogoState(selectedId, customFiles, isInitialized = true)
         if (selectedId != savedId || customFiles.size != preferences.getStringSet(CustomFilesKey, emptySet()).orEmpty().size) {
             preferences.edit()
                 .putString(SelectedIdKey, selectedId)
@@ -213,7 +214,7 @@ object ZunoLogoStore {
             .putString(SelectedIdKey, next.selectedId)
             .putStringSet(CustomFilesKey, next.customFileNames.toSet())
             .apply()
-        mutableState.value = next
+        mutableState.value = next.copy(isInitialized = true)
     }
 
     private fun customDirectory(context: Context): File = File(context.filesDir, "zuno-logos")
