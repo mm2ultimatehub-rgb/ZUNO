@@ -98,6 +98,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBarDefaults
@@ -153,6 +154,7 @@ import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.branding.ZunoLogoCatalog
 import moe.rukamori.archivetune.branding.ZunoLogoState
 import moe.rukamori.archivetune.branding.ZunoLogoStore
+import moe.rukamori.archivetune.branding.ZunoLogoImage
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.component.BackAwareModalBottomSheet
 import moe.rukamori.archivetune.ui.component.IconButton
@@ -171,7 +173,6 @@ fun IconScreen(
     navController: NavController,
     viewModel: IconViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LaunchedEffect(context) { ZunoLogoStore.initialize(context) }
     val logoState by ZunoLogoStore.state.collectAsStateWithLifecycle()
@@ -202,76 +203,58 @@ fun IconScreen(
     val deleteCustomLogo: (String) -> Unit = remember(context) {
         { fileName -> ZunoLogoStore.deleteCustom(context, fileName) }
     }
-    val activity = remember(context) { context.findActivity() }
-    val uriHandler = LocalUriHandler.current
-    val selectedTaskIconResId =
-        (state as? IconScreenState.Success)
-            ?.model
-            ?.selectedIcon
-            ?.previewDrawableResId
 
-    LaunchedEffect(activity, selectedTaskIconResId) {
-        if (activity != null && selectedTaskIconResId != null) {
-            activity.updateTaskIcon(selectedTaskIconResId)
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            TopAppBar(
+                title = { Text("ZUNO logo") },
+                navigationIcon = {
+                    MaterialIconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_back),
+                            contentDescription = stringResource(R.string.back_button_desc),
+                        )
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                ZunoLogoImage(
+                    contentDescription = "Selected ZUNO logo",
+                    modifier = Modifier.size(72.dp).clip(RoundedCornerShape(20.dp)),
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Your ZUNO identity", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        "Choose one of the eight ZUNO designs or add your own image. Your selection is used throughout the app.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            LogoPickerSection(
+                state = logoState,
+                onSelectLogo = selectLogo,
+                onAddCustomLogo = addCustomLogo,
+                onDeleteCustomLogo = deleteCustomLogo,
+            )
         }
     }
-    LaunchedEffect(viewModel, uriHandler) {
-        viewModel.effects.collect { effect ->
-            when (effect) {
-                is IconScreenEffect.OpenUri -> uriHandler.openUri(effect.uri)
-            }
-        }
-    }
-    val navigateUp: () -> Unit =
-        remember(navController) {
-            {
-                navController.navigateUp()
-                Unit
-            }
-        }
-    val navigateHome: () -> Unit =
-        remember(navController) {
-            {
-                navController.backToMain()
-            }
-        }
-    val retry = remember(viewModel) { { viewModel.retry() } }
-    val selectIcon =
-        remember(viewModel) {
-            { iconId: String -> viewModel.selectIcon(iconId) }
-        }
-    val openAuthorProfile =
-        remember(viewModel) {
-            { iconId: String -> viewModel.openAuthorProfile(iconId) }
-        }
-    val openSource =
-        remember(viewModel) {
-            { iconId: String -> viewModel.openSource(iconId) }
-        }
-    val updateSearchQuery =
-        remember(viewModel) {
-            { query: String -> viewModel.updateSearchQuery(query) }
-        }
-    val updateSortOrder =
-        remember(viewModel) {
-            { order: AppIconSortOrder -> viewModel.updateSortOrder(order) }
-        }
-
-    IconScreenContent(
-        state = state,
-        logoState = logoState,
-        onSelectLogo = selectLogo,
-        onAddCustomLogo = addCustomLogo,
-        onDeleteCustomLogo = deleteCustomLogo,
-        onNavigateUp = navigateUp,
-        onNavigateHome = navigateHome,
-        onRetry = retry,
-        onSelectIcon = selectIcon,
-        onOpenAuthorProfile = openAuthorProfile,
-        onOpenSource = openSource,
-        onSearchQueryChange = updateSearchQuery,
-        onSortOrderChange = updateSortOrder,
-    )
 }
 
 @Composable
