@@ -878,9 +878,9 @@
     <string name="ai_api_connected">API connected</string>
     <string name="ai_api_test_failed">API test failed</string>
     <string name="ai_translation_menu">AI Translation</string>
-    <string name="about_lead_developer">Original project author</string>
-    <string name="about_archive_tune_team">Original contributors</string>
-    <string name="about_respecter">Respecter</string>
+    <string name="about_lead_developer">ZUNO project</string>
+    <string name="about_archive_tune_team">ZUNO Studio</string>
+    <string name="about_respecter">Original project contributors</string>
     <string name="about_contributors">Contributors</string>
     <string name="about_translation_contributors_error">Couldn’t load translation credits.</string>
     <string name="about_contributor_translation">Contributor Translation</string>
@@ -1163,5 +1163,7 @@
     <string name="media_notification_settings_save_failed">Couldn\'t save notification settings</string>
     <string name="archivetune_canvas">Canvas</string>
     <string name="archivetune_canvas_desc">Canvas settings and playback artwork</string>
-    <string name="about_original_source">Original source</string>
+    <string name="about_original_source">Original project</string>
+    <string name="about_position_zuno_team">Music player development</string>
+    <string name="about_position_original_contributor">Original project contributor</string>
 </resources>
