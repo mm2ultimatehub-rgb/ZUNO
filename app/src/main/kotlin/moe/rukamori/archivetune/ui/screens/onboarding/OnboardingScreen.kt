@@ -131,6 +131,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import moe.rukamori.archivetune.LocalAnimationsDisabled
+import moe.rukamori.archivetune.branding.ZunoLogoImage
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.onboarding.OnboardingCommunityActionUiModel
 import moe.rukamori.archivetune.onboarding.OnboardingEvent
@@ -625,12 +626,19 @@ private fun OnboardingHero(
             modifier = Modifier.fillMaxSize(0.3f),
             label = "onboardingHeroIcon",
         ) { heroPage ->
-            Icon(
-                painter = painterResource(heroPage.heroIconResId()),
-                contentDescription = null,
-                tint = onAccentColor,
-                modifier = Modifier.fillMaxSize(),
-            )
+            if (heroPage == OnboardingPageId.WELCOME) {
+                ZunoLogoImage(
+                    contentDescription = "ZUNO",
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Icon(
+                    painter = painterResource(heroPage.heroIconResId()),
+                    contentDescription = null,
+                    tint = onAccentColor,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     }
 }
