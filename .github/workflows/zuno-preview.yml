@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: zuno-arm64-${{ github.ref }}
@@ -46,7 +46,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build universal release APK
+      - name: Build ARM64 release APK
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
@@ -98,6 +98,21 @@ jobs:
           "$BUILD_TOOLS/apksigner" verify --verbose "$SIGNED"
           "$BUILD_TOOLS/apksigner" verify --print-certs "$SIGNED"
           echo "path=$SIGNED" >> "$GITHUB_OUTPUT"
+
+      - name: Publish signed APK as GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNED_APK: ${{ steps.signed.outputs.path }}
+        run: |
+          set -euo pipefail
+          TAG="v16.0.1"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$SIGNED_APK" --clobber
+          else
+            gh release create "$TAG" "$SIGNED_APK" \
+              --title "ZUNO 16.0.1" \
+              --notes "ZUNO 16.0.1 — signed Android release. Includes the refreshed immersive player with glass playback controls and waveform seeking."
+          fi
 
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
