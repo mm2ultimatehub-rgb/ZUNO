@@ -64,11 +64,11 @@ android {
     compileSdkMinor = 2
 
     defaultConfig {
-    applicationId = "moe.rukamori.archivetune"
+    applicationId = "com.zuno.music"
         minSdk = 26
         targetSdk = 37
-        versionCode = 144
-        versionName = "16.0.1"
+        versionCode = 145
+        versionName = "16.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
