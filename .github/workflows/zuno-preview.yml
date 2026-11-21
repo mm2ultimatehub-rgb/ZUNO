@@ -1,0 +1,92 @@
+name: ZUNO Preview APK
+
+on:
+  push:
+    branches:
+      - feature/dalga-glass-player
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zuno-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build signed ZUNO universal APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.15'
+
+      - name: Generate translation contributor credits
+        run: python scripts/generate_translation_contributors.py
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          java-version: '27'
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-cleanup: on-success
+
+      - name: Build release APK
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          API_BEARER_TOKEN: ${{ secrets.API_BEARER_TOKEN }}
+          TOGETHER_BEARER_TOKEN: ${{ secrets.TOGETHER_BEARER_TOKEN }}
+          CANVAS_BEARER_TOKEN: ${{ secrets.CANVAS_BEARER_TOKEN }}
+          EXTRACTOR_BEARER: ${{ secrets.EXTRACTOR_BEARER }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleGmsMobileUniversalRelease
+
+      - name: Locate APK
+        id: apk
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find app/build/outputs/apk -type f -name '*.apk' ! -name '*unsigned*' | head -n 1)"
+          if [ -z "${APK:-}" ]; then
+            APK="$(find app/build/outputs/apk -type f -name '*-unsigned.apk' | head -n 1)"
+          fi
+          if [ -z "${APK:-}" ] || [ ! -f "$APK" ]; then
+            echo "::error::Release APK was not produced"
+            find app/build/outputs/apk -type f -print || true
+            exit 1
+          fi
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="${{ steps.apk.outputs.path }}"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          if ! "$APKSIGNER" verify --verbose "$APK"; then
+            echo "::error::APK is not signed. Configure the ZUNO release signing secrets."
+            exit 1
+          fi
+          "$APKSIGNER" verify --print-certs "$APK"
+
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: zuno-preview-universal-signed
+          path: ${{ steps.apk.outputs.path }}
+          if-no-files-found: error
+          retention-days: 14
