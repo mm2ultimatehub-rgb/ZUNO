@@ -19,10 +19,14 @@ import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -40,6 +44,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -70,6 +76,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -104,6 +111,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -131,6 +139,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -138,8 +147,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
+import moe.rukamori.archivetune.branding.ZunoLogoCatalog
+import moe.rukamori.archivetune.branding.ZunoLogoState
+import moe.rukamori.archivetune.branding.ZunoLogoStore
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.component.BackAwareModalBottomSheet
 import moe.rukamori.archivetune.ui.component.IconButton
@@ -160,6 +173,35 @@ fun IconScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    LaunchedEffect(context) { ZunoLogoStore.initialize(context) }
+    val logoState by ZunoLogoStore.state.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
+    val logoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                runCatching {
+                    withContext(Dispatchers.IO) { ZunoLogoStore.importCustom(context, uri) }
+                }.onFailure { error ->
+                    Toast.makeText(context, error.message ?: "Unable to import this image.", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+    val selectLogo: (String) -> Unit = remember(context) {
+        { id ->
+            if (id.startsWith("custom:")) {
+                ZunoLogoStore.selectCustom(context, id.removePrefix("custom:"))
+            } else {
+                ZunoLogoStore.selectPreset(context, id)
+            }
+        }
+    }
+    val addCustomLogo: () -> Unit = remember(logoPicker) {
+        { logoPicker.launch(arrayOf("image/png", "image/jpeg", "image/webp")) }
+    }
+    val deleteCustomLogo: (String) -> Unit = remember(context) {
+        { fileName -> ZunoLogoStore.deleteCustom(context, fileName) }
+    }
     val activity = remember(context) { context.findActivity() }
     val uriHandler = LocalUriHandler.current
     val selectedTaskIconResId =
@@ -217,6 +259,10 @@ fun IconScreen(
 
     IconScreenContent(
         state = state,
+        logoState = logoState,
+        onSelectLogo = selectLogo,
+        onAddCustomLogo = addCustomLogo,
+        onDeleteCustomLogo = deleteCustomLogo,
         onNavigateUp = navigateUp,
         onNavigateHome = navigateHome,
         onRetry = retry,
@@ -231,6 +277,10 @@ fun IconScreen(
 @Composable
 private fun IconScreenContent(
     state: IconScreenState,
+    logoState: ZunoLogoState,
+    onSelectLogo: (String) -> Unit,
+    onAddCustomLogo: () -> Unit,
+    onDeleteCustomLogo: (String) -> Unit,
     onNavigateUp: () -> Unit,
     onNavigateHome: () -> Unit,
     onRetry: () -> Unit,
@@ -323,6 +373,10 @@ private fun IconScreenContent(
                 is IconScreenState.Success -> {
                     IconGallery(
                         model = screenState.model,
+                        logoState = logoState,
+                        onSelectLogo = onSelectLogo,
+                        onAddCustomLogo = onAddCustomLogo,
+                        onDeleteCustomLogo = onDeleteCustomLogo,
                         contentPadding =
                             PaddingValues(
                                 start = SettingsDimensions.ScreenHorizontalPadding,
@@ -349,6 +403,10 @@ private fun IconScreenContent(
 @Composable
 private fun IconGallery(
     model: IconScreenUiModel,
+    logoState: ZunoLogoState,
+    onSelectLogo: (String) -> Unit,
+    onAddCustomLogo: () -> Unit,
+    onDeleteCustomLogo: (String) -> Unit,
     contentPadding: PaddingValues,
     onSelectIcon: (String) -> Unit,
     onOpenAuthorProfile: (String) -> Unit,
@@ -380,6 +438,19 @@ private fun IconGallery(
             horizontalArrangement = Arrangement.spacedBy(TileSpacing),
             verticalArrangement = Arrangement.spacedBy(TileSpacing),
         ) {
+            item(
+                key = "zuno-logo-picker",
+                span = FullLineSpan,
+                contentType = "zuno-logo-picker",
+            ) {
+                LogoPickerSection(
+                    state = logoState,
+                    onSelectLogo = onSelectLogo,
+                    onAddCustomLogo = onAddCustomLogo,
+                    onDeleteCustomLogo = onDeleteCustomLogo,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
             item(
                 key = StageContentKey,
                 span = FullLineSpan,
@@ -1628,3 +1699,165 @@ private val StageIconSize = 124.dp
 private val SheetArtworkSize = 168.dp
 private val SheetIconSize = 112.dp
 private val DefaultIconInset = 6.dp
+
+
+@Composable
+private fun LogoPickerSection(
+    state: ZunoLogoState,
+    onSelectLogo: (String) -> Unit,
+    onAddCustomLogo: () -> Unit,
+    onDeleteCustomLogo: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "ZUNO logos",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        text = "Choose a look for the app or add your own image.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = "${ZunoLogoCatalog.presets.size + state.customFileNames.size}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ZunoLogoCatalog.presets.forEach { preset ->
+                    LogoChoiceTile(
+                        title = preset.title,
+                        selected = state.selectedId == preset.id,
+                        file = ZunoLogoStore.logoFile(context, preset.id),
+                        onClick = { onSelectLogo(preset.id) },
+                    )
+                }
+                state.customFileNames.forEach { fileName ->
+                    LogoChoiceTile(
+                        title = "Custom",
+                        selected = state.selectedId == "custom:$fileName",
+                        file = ZunoLogoStore.customFile(context, fileName),
+                        onClick = { onSelectLogo("custom:$fileName") },
+                        onDelete = { onDeleteCustomLogo(fileName) },
+                    )
+                }
+                AddLogoTile(onClick = onAddCustomLogo)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogoChoiceTile(
+    title: String,
+    selected: Boolean,
+    file: java.io.File?,
+    onClick: () -> Unit,
+    onDelete: (() -> Unit)? = null,
+) {
+    val shape = RoundedCornerShape(18.dp)
+    Column(
+        modifier = Modifier.width(76.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(68.dp)
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .border(
+                    width = if (selected) 2.dp else 1.dp,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                    shape = shape,
+                )
+                .clickable(onClick = onClick)
+                .animateContentSize(),
+        ) {
+            if (file != null) {
+                AsyncImage(
+                    model = file,
+                    contentDescription = title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().padding(3.dp).clip(RoundedCornerShape(15.dp)),
+                )
+            }
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(4.dp)
+                        .size(20.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("✓", color = MaterialTheme.colorScheme.onPrimary, fontSize = 12.sp)
+                }
+            }
+            if (onDelete != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(3.dp)
+                        .size(20.dp)
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f), CircleShape)
+                        .clickable(onClick = onDelete),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("×", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                }
+            }
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun AddLogoTile(onClick: () -> Unit) {
+    val shape = RoundedCornerShape(18.dp)
+    Column(
+        modifier = Modifier.width(76.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(68.dp)
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("+", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+        }
+        Text("Add image", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
