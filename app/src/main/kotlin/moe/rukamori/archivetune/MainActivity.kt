@@ -3327,17 +3327,6 @@ private fun TopAppBarBrand() {
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
         label = "brandBadgeColor",
     )
-    val badgeContentColor by animateColorAsState(
-        targetValue =
-            if (isPlaying) {
-                MaterialTheme.colorScheme.onPrimary
-            } else {
-                MaterialTheme.colorScheme.onPrimaryContainer
-            },
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-        label = "brandBadgeContentColor",
-    )
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
