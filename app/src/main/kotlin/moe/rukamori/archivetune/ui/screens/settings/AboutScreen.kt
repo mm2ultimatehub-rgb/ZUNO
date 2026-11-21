@@ -993,7 +993,7 @@ private fun AboutHeroEmblem(modifier: Modifier = Modifier) {
                     }.background(emblemColor),
         )
         Image(
-            painter = painterResource(R.drawable.about_splash),
+            painter = painterResource(R.drawable.zuno_icon),
             contentDescription = null,
             colorFilter = iconColorFilter,
             modifier = Modifier.size(AboutDimensions.EmblemIconSize),
