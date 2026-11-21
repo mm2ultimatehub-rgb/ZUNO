@@ -784,13 +784,15 @@ private fun AboutSuccessContent(
             }
         }
 
-        item(key = AboutSection.TEAM.name, contentType = "about_team") {
-            TeamCarouselSection(
-                title = stringResource(R.string.about_archive_tune_team),
-                members = model.collaborators,
-                onOpenUri = onOpenUri,
-                modifier = Modifier.aboutEntrance(entrance[AboutSection.TEAM.ordinal]),
-            )
+        if (model.collaborators.size > 0) {
+            item(key = AboutSection.TEAM.name, contentType = "about_team") {
+                TeamCarouselSection(
+                    title = stringResource(R.string.about_archive_tune_team),
+                    members = model.collaborators,
+                    onOpenUri = onOpenUri,
+                    modifier = Modifier.aboutEntrance(entrance[AboutSection.TEAM.ordinal]),
+                )
+            }
         }
 
         item(key = AboutSection.RESPECTERS.name, contentType = "about_respecters") {
