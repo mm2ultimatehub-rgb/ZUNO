@@ -143,7 +143,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -169,10 +168,7 @@ import moe.rukamori.archivetune.viewmodels.IconViewModel
 import androidx.compose.material3.IconButton as MaterialIconButton
 
 @Composable
-fun IconScreen(
-    navController: NavController,
-    viewModel: IconViewModel = hiltViewModel(),
-) {
+fun IconScreen(navController: NavController) {
     val context = LocalContext.current
     LaunchedEffect(context) { ZunoLogoStore.initialize(context) }
     val logoState by ZunoLogoStore.state.collectAsStateWithLifecycle()
