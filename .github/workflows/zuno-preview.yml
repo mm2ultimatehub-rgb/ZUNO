@@ -5,8 +5,13 @@ on:
     branches:
       - main
       - feature/dalga-glass-player
+      - feature/zuno-brand-icon-system
     paths:
       - app/build.gradle.kts
+      - app/src/main/res/drawable/**
+      - app/src/main/res/values/strings.xml
+      - IconPack
+      - .github/workflows/zuno-preview.yml
   workflow_dispatch:
 
 permissions:
@@ -117,7 +122,7 @@ jobs:
             gh release create "$TAG" "$SIGNED_APK" \
               --target "$GITHUB_SHA" \
               --title "ZUNO ${VERSION_NAME}" \
-              --notes "ZUNO ${VERSION_NAME} — signed Android release. Includes the refreshed immersive player with glass playback controls and waveform seeking."
+              --notes "ZUNO ${VERSION_NAME} — signed Android release. Includes the original ZUNO waveform identity and six first-party launcher icon styles."
           fi
 
       - name: Upload signed APK
