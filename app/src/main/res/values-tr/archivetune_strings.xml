@@ -247,7 +247,7 @@
     <string name="local_songs_no_matches_title">Eşleşen yerel şarkı bulunamadı</string>
     <string name="local_songs_no_matches_desc">Farklı bir şarkı, sanatçı yada albüm adı deneyin.</string>
     <string name="sort_by_album">Albüm</string>
-    <string name="news">Geliştiriciler için haberler</string>
+    <string name="news">ZUNO Haberleri</string>
     <string name="news_loading">Haberler yükleniyor…</string>
     <string name="news_empty_title">Burada henüz bir şey yok</string>
     <string name="news_empty_desc">Şu anda duyuru yok. Yakın zamanda tekrar kontrol edin.</string>
