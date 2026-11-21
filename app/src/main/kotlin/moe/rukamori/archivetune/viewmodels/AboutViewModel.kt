@@ -435,162 +435,134 @@ class AboutViewModel
                     ),
                 leadDeveloper =
                     TeamMember(
-                        avatarUrl = "https://avatars.githubusercontent.com/u/107134739?v=4",
-                        name = "morieattonkatsu",
-                        positionResId = R.string.about_position_lead_dev,
-                        profileUrl = "https://github.com/rukamori",
+                        avatarUrl = "https://avatars.githubusercontent.com/u/354176007?v=4",
+                        name = "ZUNO Studio",
+                        positionResId = R.string.about_position_zuno_team,
+                        profileUrl = "https://github.com/mm2ultimatehub-rgb/ZUNO",
                         links =
                             AboutLinkCollection.of(
                                 AboutLinkUiModel(
                                     id = "github",
                                     iconResId = R.drawable.github,
                                     labelResId = R.string.about_content_desc_github,
-                                    url = "https://github.com/rukamori",
+                                    url = "https://github.com/mm2ultimatehub-rgb/ZUNO",
                                 ),
                             ),
                     ),
-                collaborators =
+                collaborators = TeamMemberCollection.of(),
+                respecters =
                     TeamMemberCollection.of(
                         TeamMember(
                             avatarUrl = "https://avatars.githubusercontent.com/u/89002922?v=4",
                             name = "Miko",
-                            positionResId = R.string.about_position_developers,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = "https://github.com/mikooochi",
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "github",
-                                        iconResId = R.drawable.github,
-                                        labelResId = R.string.about_content_desc_github,
-                                        url = "https://github.com/mikooochi",
-                                    ),
+                            links = AboutLinkCollection.of(
+                                AboutLinkUiModel(
+                                    id = "github",
+                                    iconResId = R.drawable.github,
+                                    labelResId = R.string.about_content_desc_github,
+                                    url = "https://github.com/mikooochi",
                                 ),
+                            ),
                         ),
                         TeamMember(
                             avatarUrl = "https://avatars.githubusercontent.com/u/195509093?v=4",
                             name = "Shino",
-                            positionResId = R.string.about_position_developers,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = "https://github.com/shinonatsukii",
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "github",
-                                        iconResId = R.drawable.github,
-                                        labelResId = R.string.about_content_desc_github,
-                                        url = "https://github.com/shinonatsukii",
-                                    ),
-                                    AboutLinkUiModel(
-                                        id = "telegram",
-                                        iconResId = R.drawable.alternate_email,
-                                        labelResId = R.string.about_content_desc_telegram,
-                                        url = "https://t.me/shinonatsukii",
-                                    ),
+                            links = AboutLinkCollection.of(
+                                AboutLinkUiModel(
+                                    id = "github",
+                                    iconResId = R.drawable.github,
+                                    labelResId = R.string.about_content_desc_github,
+                                    url = "https://github.com/shinonatsukii",
                                 ),
+                            ),
                         ),
                         TeamMember(
                             avatarUrl = "https://avatars.githubusercontent.com/u/93458424?v=4",
                             name = "WTTexe",
-                            positionResId = R.string.about_position_developers,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = "https://github.com/Windowstechtips",
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "github",
-                                        iconResId = R.drawable.github,
-                                        labelResId = R.string.about_content_desc_github,
-                                        url = "https://github.com/Windowstechtips",
-                                    ),
-                                    AboutLinkUiModel(
-                                        id = "discord",
-                                        iconResId = R.drawable.alternate_email,
-                                        labelResId = R.string.about_content_desc_discord,
-                                        url = "https://discord.com/users/840839409640800258",
-                                    ),
+                            links = AboutLinkCollection.of(
+                                AboutLinkUiModel(
+                                    id = "github",
+                                    iconResId = R.drawable.github,
+                                    labelResId = R.string.about_content_desc_github,
+                                    url = "https://github.com/Windowstechtips",
                                 ),
+                            ),
                         ),
                         TeamMember(
                             avatarUrl = "https://avatars.githubusercontent.com/u/203143605?v=4",
                             name = "Yuki/Reze",
-                            positionResId = R.string.about_position_yuki,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = "https://github.com/4nx3b",
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "github",
-                                        iconResId = R.drawable.github,
-                                        labelResId = R.string.about_content_desc_github,
-                                        url = "https://github.com/4nx3b",
-                                    ),
+                            links = AboutLinkCollection.of(
+                                AboutLinkUiModel(
+                                    id = "github",
+                                    iconResId = R.drawable.github,
+                                    labelResId = R.string.about_content_desc_github,
+                                    url = "https://github.com/4nx3b",
                                 ),
+                            ),
                         ),
-                    ),
-                respecters =
-                    TeamMemberCollection.of(
                         TeamMember(
                             avatarUrl = "https://avatars.githubusercontent.com/u/80542861?v=4",
                             name = "MO AGAMY",
-                            positionResId = R.string.about_position_mo_agamy,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = "https://github.com/mostafaalagamy",
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "github",
-                                        iconResId = R.drawable.github,
-                                        labelResId = R.string.about_content_desc_github,
-                                        url = "https://github.com/mostafaalagamy",
-                                    ),
+                            links = AboutLinkCollection.of(
+                                AboutLinkUiModel(
+                                    id = "github",
+                                    iconResId = R.drawable.github,
+                                    labelResId = R.string.about_content_desc_github,
+                                    url = "https://github.com/mostafaalagamy",
                                 ),
+                            ),
                         ),
                         TeamMember(
                             avatarUrl = "https://avatars.githubusercontent.com/u/110614797?v=4",
                             name = "Zion Huang",
-                            positionResId = R.string.about_position_zion_huang,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = "https://github.com/z-huang",
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "github",
-                                        iconResId = R.drawable.github,
-                                        labelResId = R.string.about_content_desc_github,
-                                        url = "https://github.com/z-huang",
-                                    ),
+                            links = AboutLinkCollection.of(
+                                AboutLinkUiModel(
+                                    id = "github",
+                                    iconResId = R.drawable.github,
+                                    labelResId = R.string.about_content_desc_github,
+                                    url = "https://github.com/z-huang",
                                 ),
+                            ),
                         ),
                         TeamMember(
                             avatarUrl = "https://avatars.githubusercontent.com/u/26746725?v=4",
                             name = "Boidushya",
-                            positionResId = R.string.about_position_boidushya,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = "https://github.com/boidushya",
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "github",
-                                        iconResId = R.drawable.github,
-                                        labelResId = R.string.about_content_desc_github,
-                                        url = "https://github.com/boidushya",
-                                    ),
+                            links = AboutLinkCollection.of(
                                 AboutLinkUiModel(
-                                    id = "website",
-                                    iconResId = R.drawable.website,
-                                    labelResId = R.string.about_content_desc_website,
-                                    url = "https://https://boidu.dev",
+                                    id = "github",
+                                    iconResId = R.drawable.github,
+                                    labelResId = R.string.about_content_desc_github,
+                                    url = "https://github.com/boidushya",
                                 ),
                             ),
                         ),
                         TeamMember(
                             avatarUrl = LrcRedAvatarUri,
                             name = "lrc.red",
-                            positionResId = R.string.about_position_lrcred,
+                            positionResId = R.string.about_position_original_contributor,
                             profileUrl = LrcRedUrl,
-                            links =
-                                AboutLinkCollection.of(
-                                    AboutLinkUiModel(
-                                        id = "website",
-                                        iconResId = R.drawable.website,
-                                        labelResId = R.string.about_content_desc_website,
-                                        url = LrcRedUrl,
-                                    ),
+                            links = AboutLinkCollection.of(
+                                AboutLinkUiModel(
+                                    id = "website",
+                                    iconResId = R.drawable.website,
+                                    labelResId = R.string.about_content_desc_website,
+                                    url = LrcRedUrl,
                                 ),
+                            ),
                         ),
                     ),
                 contributorsState = contributorsState,
