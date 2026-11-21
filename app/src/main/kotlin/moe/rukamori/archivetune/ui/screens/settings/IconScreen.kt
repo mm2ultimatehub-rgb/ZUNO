@@ -1804,14 +1804,10 @@ private fun LogoChoiceTile(
                     modifier = Modifier.fillMaxSize().padding(3.dp).clip(RoundedCornerShape(15.dp)),
                 )
             }
-            AnimatedVisibility(
-                visible = selected,
-                modifier = Modifier.align(Alignment.BottomEnd),
-                enter = fadeIn() + scaleIn(),
-                exit = fadeOut() + scaleOut(),
-            ) {
+            if (selected) {
                 Box(
                     modifier = Modifier
+                        .align(Alignment.BottomEnd)
                         .padding(4.dp)
                         .size(20.dp)
                         .background(MaterialTheme.colorScheme.primary, CircleShape),
