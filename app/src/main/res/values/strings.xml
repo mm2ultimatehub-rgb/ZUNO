@@ -421,12 +421,12 @@
     <string name="app_icon_default">Default</string>
     <string name="app_icon_subtitle">Personalize your launcher</string>
     <string name="app_icon_current">Current icon</string>
-    <string name="app_icon_available">Available icons</string>
+    <string name="app_icon_available">ZUNO icon collection</string>
     <string name="app_icon_builtin">Built in</string>
-    <string name="app_icon_community">Community icon</string>
+    <string name="app_icon_community">ZUNO design</string>
     <string name="app_icon_builtin_description">Original ZUNO icon</string>
     <string name="app_icon_identifier">ID %1$s</string>
-    <string name="app_icon_community_notice">Community icons are created by users and may change over time.</string>
+    <string name="app_icon_community_notice">A collection of original ZUNO icon styles, designed by ZUNO Studio.</string>
     <plurals name="app_icon_count">
         <item quantity="one">%d icon</item>
         <item quantity="other">%d icons</item>
