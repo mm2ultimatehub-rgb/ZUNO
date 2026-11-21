@@ -1161,4 +1161,6 @@
     <string name="media_notification_reset_done">Notification settings reset</string>
     <string name="media_notification_settings_load_failed">Couldn\'t load notification settings</string>
     <string name="media_notification_settings_save_failed">Couldn\'t save notification settings</string>
+    <string name="archivetune_canvas">Canvas</string>
+    <string name="archivetune_canvas_desc">Canvas settings and playback artwork</string>
 </resources>
