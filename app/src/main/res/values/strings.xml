@@ -424,7 +424,7 @@
     <string name="app_icon_available">Available icons</string>
     <string name="app_icon_builtin">Built in</string>
     <string name="app_icon_community">Community icon</string>
-    <string name="app_icon_builtin_description">Original ArchiveTune icon</string>
+    <string name="app_icon_builtin_description">Original ZUNO icon</string>
     <string name="app_icon_identifier">ID %1$s</string>
     <string name="app_icon_community_notice">Community icons are created by users and may change over time.</string>
     <plurals name="app_icon_count">
@@ -970,7 +970,7 @@
     <string name="target_language">Target Language</string>
     <string name="close_dialog">Close</string>
     <string name="support_development_title">Support development</string>
-    <string name="support_development_message">Hey there! I\'m rukamori, the developer of ArchiveTune. If ArchiveTune has earned a place in your daily listening, you can help keep it moving forward by donating or starring the project on GitHub. Thanks for supporting the work behind the app.</string>
+    <string name="support_development_message">Thanks for listening with ZUNO. Your support helps us keep improving the music experience.</string>
     <string name="support_development_donate">Donate to support development</string>
     <string name="support_development_star">Star on GitHub</string>
     <string name="later">Later</string>
@@ -1404,7 +1404,7 @@
     <string name="scheduled_backup_directory_saved">Backup directory saved</string>
     <string name="scheduled_backup_load_failed">Scheduled backup settings could not be loaded</string>
     <string name="scheduled_backup_update_failed">Scheduled backup settings could not be saved</string>
-    <string name="gatekeeper_connection_blocked">Connection blocked by ArchiveTune Remote. This app could not be verified as an official ArchiveTune build. Install an official build from https://github.com/rukamori/ArchiveTune or https://t.me/ArchiveTuneGC.</string>
+    <string name="gatekeeper_connection_blocked">Connection blocked by ZUNO Remote. This app could not be verified as an official ZUNO build. Install an official build from https://github.com/mm2ultimatehub-rgb/ZUNO.</string>
     <string name="local_songs_metadata_unavailable">Imported %1$d songs. Online metadata is unavailable; file tags were kept.</string>
     <string name="modules_session_verify">Verify connection</string>
     <string name="modules_session_connected">Module connection verified</string>
