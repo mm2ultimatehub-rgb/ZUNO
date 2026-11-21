@@ -106,13 +106,15 @@ jobs:
           SIGNED_APK: ${{ steps.signed.outputs.path }}
         run: |
           set -euo pipefail
-          TAG="v16.0.1"
+          VERSION_NAME="$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts | head -n 1)"
+          TAG="v${VERSION_NAME}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$SIGNED_APK" --clobber
           else
             gh release create "$TAG" "$SIGNED_APK" \
-              --title "ZUNO 16.0.1" \
-              --notes "ZUNO 16.0.1 — signed Android release. Includes the refreshed immersive player with glass playback controls and waveform seeking."
+              --target "$GITHUB_SHA" \
+              --title "ZUNO ${VERSION_NAME}" \
+              --notes "ZUNO ${VERSION_NAME} — signed Android release. Includes the refreshed immersive player with glass playback controls and waveform seeking."
           fi
 
       - name: Upload signed APK
