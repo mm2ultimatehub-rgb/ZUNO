@@ -260,7 +260,7 @@
     <string name="news_no_results_desc">Farklı bir arama terimi deneyin.</string>
     <string name="news_important_badge">Önemli</string>
     <string name="news_tooltip_title">Yeni Duyurular</string>
-    <string name="news_tooltip_body">ZUNO'dan okunmamış duyurularınız var.</string>
+    <string name="news_tooltip_body">ZUNO tarafından okunmamış duyurularınız var.</string>
     <string name="news_author_on_date">%1$s · %2$s</string>
     <plurals name="news_article_count">
         <item quantity="one">%d makale</item>
