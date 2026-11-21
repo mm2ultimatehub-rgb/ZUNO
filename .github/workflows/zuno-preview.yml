@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build signed ZUNO universal APK
+    name: Build and sign ZUNO universal APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
@@ -43,7 +43,7 @@ jobs:
         with:
           cache-cleanup: on-success
 
-      - name: Build release APK
+      - name: Build universal release APK
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
@@ -55,38 +55,55 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon --stacktrace assembleGmsMobileUniversalRelease
 
-      - name: Locate APK
-        id: apk
+      - name: Sign and verify APK
+        id: signed
         shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          STORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASS_INPUT: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          APK="$(find app/build/outputs/apk -type f -name '*.apk' ! -name '*unsigned*' | head -n 1)"
-          if [ -z "${APK:-}" ]; then
-            APK="$(find app/build/outputs/apk -type f -name '*-unsigned.apk' | head -n 1)"
+          for name in KEYSTORE_B64 KEY_ALIAS STORE_PASS; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required GitHub Actions secret: $name (configure KEYSTORE, KEY_ALIAS, KEYSTORE_PASSWORD)."
+              exit 1
+            fi
+          done
+
+          KEYSTORE_FILE="$RUNNER_TEMP/zuno-release.keystore"
+          trap 'rm -f "$KEYSTORE_FILE"' EXIT
+          printf '%s' "$KEYSTORE_B64" | tr -d '[:space:]' | base64 -d > "$KEYSTORE_FILE"
+          test -s "$KEYSTORE_FILE"
+
+          keytool -list -keystore "$KEYSTORE_FILE" -storepass:env STORE_PASS -alias "$KEY_ALIAS" >/dev/null
+          KEY_PASS="${KEY_PASS_INPUT:-$STORE_PASS}"
+          export KEY_PASS
+
+          APK="$(find app/build/outputs/apk -type f -name '*-unsigned.apk' | head -n 1)"
+          if [ -z "${APK:-}" ] || [ ! -f "$APK" ]; then
+            APK="$(find app/build/outputs/apk -type f -name '*.apk' | head -n 1)"
           fi
           if [ -z "${APK:-}" ] || [ ! -f "$APK" ]; then
-            echo "::error::Release APK was not produced"
+            echo "::error::No release APK was produced"
             find app/build/outputs/apk -type f -print || true
             exit 1
           fi
-          echo "path=$APK" >> "$GITHUB_OUTPUT"
 
-      - name: Verify APK signature
-        shell: bash
-        run: |
-          set -euo pipefail
-          APK="${{ steps.apk.outputs.path }}"
-          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
-          if ! "$APKSIGNER" verify --verbose "$APK"; then
-            echo "::error::APK is not signed. Configure the ZUNO release signing secrets."
-            exit 1
-          fi
-          "$APKSIGNER" verify --print-certs "$APK"
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
+          ALIGNED="$RUNNER_TEMP/zuno-aligned.apk"
+          SIGNED="$RUNNER_TEMP/ZUNO-universal-signed.apk"
+          "$BUILD_TOOLS/zipalign" -f -P 16 4 "$APK" "$ALIGNED"
+          "$BUILD_TOOLS/apksigner" sign --ks "$KEYSTORE_FILE" --ks-key-alias "$KEY_ALIAS" --ks-pass env:STORE_PASS --key-pass env:KEY_PASS --out "$SIGNED" "$ALIGNED"
+          "$BUILD_TOOLS/apksigner" verify --verbose "$SIGNED"
+          "$BUILD_TOOLS/apksigner" verify --print-certs "$SIGNED"
+          echo "path=$SIGNED" >> "$GITHUB_OUTPUT"
 
-      - name: Upload installable APK
+      - name: Upload signed APK
         uses: actions/upload-artifact@v7
         with:
           name: zuno-preview-universal-signed
-          path: ${{ steps.apk.outputs.path }}
+          path: ${{ steps.signed.outputs.path }}
           if-no-files-found: error
           retention-days: 14
