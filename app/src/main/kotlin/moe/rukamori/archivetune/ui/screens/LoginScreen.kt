@@ -156,7 +156,7 @@ fun LoginScreen(
     )
 
     TopAppBar(
-        title = { Text(stringResource(R.string.login)) },
+        title = { Text(stringResource(R.string.onboarding_login_title)) },
         navigationIcon = {
             IconButton(
                 onClick = {
