@@ -67,8 +67,8 @@ android {
     applicationId = "com.zuno.music"
         minSdk = 26
         targetSdk = 37
-        versionCode = 149
-        versionName = "16.0.6"
+        versionCode = 150
+        versionName = "16.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
