@@ -10,8 +10,11 @@ package moe.rukamori.archivetune.ui.player.immersive
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -720,23 +723,54 @@ private fun TransportControls(
                 modifier = Modifier.size(56.dp),
             )
         }
-        IconButton(
-            onClick = { onAction(ImmersivePlayerAction.TogglePlayPause) },
-            modifier = Modifier.size(88.dp),
+        val playScale by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (isPlaying) 1.04f else 1f,
+            label = "glassPlayScale",
+        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier
+                    .size(82.dp)
+                    .graphicsLayer {
+                        scaleX = playScale
+                        scaleY = playScale
+                    }
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.34f),
+                                Color(0xFF75DCE0).copy(alpha = 0.24f),
+                                Color.White.copy(alpha = 0.10f),
+                            ),
+                        ),
+                    )
+                    .border(1.dp, Color.White.copy(alpha = 0.62f), CircleShape)
+                    .clickable { onAction(ImmersivePlayerAction.TogglePlayPause) },
         ) {
-            if (isBuffering) {
-                CircularProgressIndicator(
-                    color = ImmersiveContentColor,
-                    strokeWidth = 3.dp,
-                    modifier = Modifier.size(52.dp),
-                )
-            } else {
-                Icon(
-                    painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                    contentDescription = stringResource(if (isPlaying) R.string.widget_pause else R.string.play),
-                    tint = ImmersiveContentColor,
-                    modifier = Modifier.size(68.dp),
-                )
+            Box(
+                modifier =
+                    Modifier
+                        .size(70.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF07191D).copy(alpha = 0.36f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isBuffering) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        strokeWidth = 3.dp,
+                        modifier = Modifier.size(42.dp),
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = stringResource(if (isPlaying) R.string.widget_pause else R.string.play),
+                        tint = Color.White,
+                        modifier = Modifier.size(42.dp),
+                    )
+                }
             }
         }
         IconButton(
@@ -869,24 +903,29 @@ private fun ThinProgressSlider(
                 .then(interactionModifier),
     ) {
         val centerY = size.height / 2f
-        drawLine(
-            color = Color.White.copy(alpha = 0.28f),
-            start = Offset(0f, centerY),
-            end = Offset(size.width, centerY),
-            strokeWidth = 6.dp.toPx(),
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = ImmersiveContentColor,
-            start = Offset(0f, centerY),
-            end = Offset(size.width * fraction, centerY),
-            strokeWidth = 6.dp.toPx(),
-            cap = StrokeCap.Round,
-        )
+        val barCount = 58
+        val gap = 3.dp.toPx()
+        val barWidth = ((size.width - gap * (barCount - 1)) / barCount).coerceAtLeast(1.dp.toPx())
+        val playedColor = Color(0xFF8CE8E4)
+        val idleColor = Color.White.copy(alpha = 0.30f)
+        repeat(barCount) { index ->
+            val x = index * (barWidth + gap) + barWidth / 2f
+            val wave = (0.20f + 0.80f * kotlin.math.abs(kotlin.math.sin(index * 0.57f)) *
+                (0.58f + 0.42f * kotlin.math.abs(kotlin.math.sin(index * 0.19f + 1.1f))))
+            val barHeight = (5.dp.toPx() + wave * 15.dp.toPx()).coerceAtMost(size.height - 2.dp.toPx())
+            val color = if (x / size.width <= fraction) playedColor else idleColor
+            drawLine(
+                color = color,
+                start = Offset(x, centerY - barHeight / 2f),
+                end = Offset(x, centerY + barHeight / 2f),
+                strokeWidth = barWidth,
+                cap = StrokeCap.Round,
+            )
+        }
         if (isFocused) {
             drawCircle(
-                color = ImmersiveContentColor,
-                radius = 8.dp.toPx(),
+                color = Color.White,
+                radius = 7.dp.toPx(),
                 center = Offset(size.width * fraction, centerY),
             )
         }
