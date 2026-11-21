@@ -100,7 +100,16 @@ abstract class GenerateIconPackTask : DefaultTask() {
                 }
 
                 val sourceFile = resolveSource(source)
-                val analysis = analyzeSvg(sourceFile)
+                val isSvgSource = sourceFile.extension.equals("svg", ignoreCase = true)
+                val analysis =
+                    if (isSvgSource) {
+                        analyzeSvg(sourceFile)
+                    } else {
+                        SvgAnalysis(
+                            hasIntegratedBackground = false,
+                            recommendedBackgroundColor = DefaultTransparentIconBackground,
+                        )
+                    }
                 val hasIntegratedBackground =
                     when (backgroundMode.lowercase()) {
                         "" -> {
@@ -123,9 +132,14 @@ abstract class GenerateIconPackTask : DefaultTask() {
                         }
                     }
                 val drawableName = "icon_pack_$hash"
-                val targetFile = File(resourcesDirectory, "drawable-nodpi/$drawableName.png")
+                val targetExtension = if (isSvgSource) "png" else "webp"
+                val targetFile = File(resourcesDirectory, "drawable-nodpi/$drawableName.$targetExtension")
                 targetFile.parentFile.mkdirs()
-                rasterizeSvg(sourceFile, targetFile)
+                if (isSvgSource) {
+                    rasterizeSvg(sourceFile, targetFile)
+                } else {
+                    copyWebp(sourceFile, targetFile)
+                }
                 val backgroundColor =
                     if (configuredBackgroundColor.isEmpty()) {
                         if (hasIntegratedBackground) {
@@ -186,11 +200,12 @@ abstract class GenerateIconPackTask : DefaultTask() {
     }
 
     private fun resolveSource(source: String): File {
-        if (!source.endsWith(".svg", ignoreCase = true) ||
+        val extension = source.substringAfterLast('.', "").lowercase()
+        if (extension !in setOf("svg", "webp") ||
             source.contains('/') ||
             source.contains('\\')
         ) {
-            throw GradleException("IconPack Source \"$source\" must be an SVG basename.")
+            throw GradleException("IconPack Source \"$source\" must be an SVG or WebP basename.")
         }
 
         val root = svgDirectory.get().asFile.canonicalFile
@@ -199,6 +214,21 @@ abstract class GenerateIconPackTask : DefaultTask() {
             throw GradleException("IconPack Source \"$source\" is missing from ${root.path}.")
         }
         return sourceFile
+    }
+
+    private fun copyWebp(
+        sourceFile: File,
+        targetFile: File,
+    ) {
+        val bytes = sourceFile.readBytes()
+        val hasWebpSignature =
+            bytes.size >= 12 &&
+                bytes.copyOfRange(0, 4).contentEquals("RIFF".toByteArray(Charsets.US_ASCII)) &&
+                bytes.copyOfRange(8, 12).contentEquals("WEBP".toByteArray(Charsets.US_ASCII))
+        if (!hasWebpSignature) {
+            throw GradleException("IconPack Source \"${sourceFile.name}\" is not a valid WebP file.")
+        }
+        targetFile.writeBytes(bytes)
     }
 
     private fun rasterizeSvg(
