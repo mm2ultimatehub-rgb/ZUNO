@@ -9,11 +9,12 @@ package moe.rukamori.archivetune.branding
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Base64
+import org.json.JSONObject
 import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import moe.rukamori.archivetune.R
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
@@ -23,29 +24,21 @@ data class ZunoLogoState(
     val customFileNames: List<String> = emptyList(),
 )
 
-data class ZunoLogoPreset(
-    val id: String,
-    val title: String,
-    val drawableResId: Int,
-)
+data class ZunoLogoPreset(val id: String, val title: String)
 
 object ZunoLogoCatalog {
     const val DefaultId = "neon"
 
     val presets = listOf(
-        ZunoLogoPreset("anime", "Anime", R.drawable.zuno_logo_anime),
-        ZunoLogoPreset("ornate", "Ornate", R.drawable.zuno_logo_ornate),
-        ZunoLogoPreset("butterfly", "Butterfly", R.drawable.zuno_logo_butterfly),
-        ZunoLogoPreset("slime", "Slime", R.drawable.zuno_logo_slime),
-        ZunoLogoPreset("bloom", "Bloom", R.drawable.zuno_logo_bloom),
-        ZunoLogoPreset("neon", "Neon", R.drawable.zuno_logo_neon),
-        ZunoLogoPreset("ink", "Ink", R.drawable.zuno_logo_ink),
-        ZunoLogoPreset("pixel", "Pixel", R.drawable.zuno_logo_pixel),
+        ZunoLogoPreset("anime", "Anime"),
+        ZunoLogoPreset("ornate", "Ornate"),
+        ZunoLogoPreset("butterfly", "Butterfly"),
+        ZunoLogoPreset("slime", "Slime"),
+        ZunoLogoPreset("bloom", "Bloom"),
+        ZunoLogoPreset("neon", "Neon"),
+        ZunoLogoPreset("ink", "Ink"),
+        ZunoLogoPreset("pixel", "Pixel"),
     )
-
-    fun drawableFor(id: String): Int =
-        presets.firstOrNull { it.id == id }?.drawableResId
-            ?: presets.first { it.id == DefaultId }.drawableResId
 }
 
 /**
@@ -56,6 +49,7 @@ object ZunoLogoStore {
     private const val PreferencesName = "zuno_logo_preferences"
     private const val SelectedIdKey = "selected_logo_id"
     private const val CustomFilesKey = "custom_logo_files"
+    private const val PresetAssetPath = "zuno_logos.json"
     private const val CustomPrefix = "custom:"
     private const val MaxImportBytes = 15L * 1024L * 1024L
     private const val MaxImageEdge = 1024
@@ -70,6 +64,7 @@ object ZunoLogoStore {
     fun initialize(context: Context) {
         if (initialized) return
         val appContext = context.applicationContext
+        ensurePresetFiles(appContext)
         val preferences = appContext.getSharedPreferences(PreferencesName, Context.MODE_PRIVATE)
         val files = customDirectory(appContext)
         val customFiles = preferences.getStringSet(CustomFilesKey, emptySet())
@@ -186,7 +181,30 @@ object ZunoLogoStore {
 
     fun customFile(context: Context, fileName: String): File? {
         if (!fileName.matches(CustomFilePattern)) return null
-        return File(customDirectory(context.applicationContext), fileName).takeIf(File::isFile)
+        return File(customDirectory(context.applicationContext), fileName).takeIf { it.isFile }
+    }
+
+    fun logoFile(context: Context, id: String): File? {
+        val appContext = context.applicationContext
+        return if (id.startsWith(CustomPrefix)) {
+            customFile(appContext, id.removePrefix(CustomPrefix))
+        } else {
+            if (ZunoLogoCatalog.presets.none { it.id == id }) return null
+            File(customDirectory(appContext), "preset_$id.webp").takeIf { it.isFile }
+        }
+    }
+
+    private fun ensurePresetFiles(context: Context) {
+        val directory = customDirectory(context).apply { mkdirs() }
+        val encoded = context.assets.open(PresetAssetPath).bufferedReader().use { it.readText() }
+        val logos = JSONObject(encoded)
+        ZunoLogoCatalog.presets.forEach { preset ->
+            val target = File(directory, "preset_${preset.id}.webp")
+            if (!target.isFile || target.length() == 0L) {
+                val bytes = Base64.decode(logos.getString(preset.id), Base64.DEFAULT)
+                target.writeBytes(bytes)
+            }
+        }
     }
 
     private fun persist(context: Context, next: ZunoLogoState) {
