@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build, sign and verify ZUNO APK
+    name: Build, sign and verify ZUNO ARM64 APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
@@ -56,7 +56,7 @@ jobs:
           EXTRACTOR_BEARER: ${{ secrets.EXTRACTOR_BEARER }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace assembleGmsMobileUniversalRelease
+          ./gradlew --no-daemon --stacktrace assembleGmsMobileArm64Release
 
       - name: Sign and verify APK
         id: signed
@@ -90,7 +90,7 @@ jobs:
 
           BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
           ALIGNED="$RUNNER_TEMP/zuno-aligned.apk"
-          SIGNED="$RUNNER_TEMP/app-gms-mobile-universal-release.apk"
+          SIGNED="$RUNNER_TEMP/app-gms-mobile-arm64-release.apk"
           "$BUILD_TOOLS/zipalign" -f -P 16 4 "$APK" "$ALIGNED"
           KEY_PASS="${KEY_PASS_INPUT:-$STORE_PASS}"
           export KEY_PASS STORE_PASS
@@ -102,7 +102,7 @@ jobs:
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-gms-mobile-universal-release-signed
+          name: app-gms-mobile-arm64-release-signed
           path: ${{ steps.signed.outputs.path }}
           if-no-files-found: error
           retention-days: 14
