@@ -595,9 +595,9 @@
     <string name="ai_api_key_missing">YZ özelliklerinin çalışabilmesinde gereklidir.</string>
     <string name="ai_provider_openrouter"></string>
     <string name="ai_translation_menu">YZ Çeviri</string>
-    <string name="about_lead_developer">Orijinal proje yazarı</string>
-    <string name="about_archive_tune_team">Orijinal katkıda bulunanlar</string>
-    <string name="about_respecter">Saygılarımızla</string>
+    <string name="about_lead_developer">ZUNO projesi</string>
+    <string name="about_archive_tune_team">ZUNO Studio</string>
+    <string name="about_respecter">Orijinal proje katkıcıları</string>
     <string name="about_contributors">Katkıda bulunanlar</string>
     <string name="about_contributor_translation">Çeviride katkıda bulunanlar</string>
     <string name="about_license">LİSANLAR</string>
@@ -653,5 +653,7 @@
     <string name="ai_api_status_success">API hazır</string>
     <string name="ai_api_status_failed">API başarısız. Ayarları güncelledikten sonra tekrar deneyin.</string>
     <string name="ai_model">Model</string>
-    <string name="about_original_source">Orijinal kaynak</string>
+    <string name="about_original_source">Orijinal proje</string>
+    <string name="about_position_zuno_team">Müzik oynatıcı geliştirme</string>
+    <string name="about_position_original_contributor">Orijinal proje katkıcısı</string>
 </resources>
