@@ -3,6 +3,7 @@ name: ZUNO Signed APK
 on:
   push:
     branches:
+      - main
       - feature/dalga-glass-player
   workflow_dispatch:
 
