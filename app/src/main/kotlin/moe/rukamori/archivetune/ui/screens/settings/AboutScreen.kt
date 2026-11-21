@@ -128,6 +128,7 @@ import moe.rukamori.archivetune.LocalPlayerAwareWindowInsets
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.component.IconButton
 import moe.rukamori.archivetune.ui.player.EditorialMorphShape
+import moe.rukamori.archivetune.branding.ZunoLogoImage
 import moe.rukamori.archivetune.ui.utils.backToMain
 import moe.rukamori.archivetune.viewmodels.AboutContributorUiCollection
 import moe.rukamori.archivetune.viewmodels.AboutContributorsUiState
@@ -948,8 +949,6 @@ private fun AboutHeroEmblem(modifier: Modifier = Modifier) {
 
     val backdropColor = MaterialTheme.colorScheme.tertiaryContainer
     val emblemColor = MaterialTheme.colorScheme.primary
-    val iconTint = MaterialTheme.colorScheme.onPrimary
-    val iconColorFilter = remember(iconTint) { ColorFilter.tint(iconTint) }
 
     Box(
         modifier =
@@ -992,10 +991,8 @@ private fun AboutHeroEmblem(modifier: Modifier = Modifier) {
                         clip = true
                     }.background(emblemColor),
         )
-        Image(
-            painter = painterResource(R.drawable.zuno_icon),
+        ZunoLogoImage(
             contentDescription = null,
-            colorFilter = iconColorFilter,
             modifier = Modifier.size(AboutDimensions.EmblemIconSize),
         )
     }
