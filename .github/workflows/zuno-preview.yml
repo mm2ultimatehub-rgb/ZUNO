@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: zuno-signed-apk-${{ github.ref }}
+  group: zuno-arm64-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
