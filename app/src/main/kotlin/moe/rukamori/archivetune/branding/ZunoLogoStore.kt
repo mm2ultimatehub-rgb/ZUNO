@@ -198,12 +198,12 @@ object ZunoLogoStore {
         val directory = customDirectory(context).apply { mkdirs() }
         ZunoLogoCatalog.presets.forEach { preset ->
             val target = File(directory, "preset_${preset.id}.webp")
-            if (!target.isFile || target.length() == 0L) {
-                val encoded = context.assets.open("$PresetAssetDirectory/${preset.id}.webp.b64")
-                    .bufferedReader()
-                    .use { it.readText() }
-                target.writeBytes(Base64.decode(encoded, Base64.DEFAULT))
-            }
+            // Always refresh bundled presets from the APK. Older builds copied these files
+            // into private storage once, so an existence-only check kept stale logos forever.
+            val encoded = context.assets.open("$PresetAssetDirectory/${preset.id}.webp.b64")
+                .bufferedReader()
+                .use { it.readText() }
+            target.writeBytes(Base64.decode(encoded, Base64.DEFAULT))
         }
     }
 
