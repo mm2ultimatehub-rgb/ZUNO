@@ -1212,7 +1212,7 @@
     <string name="onboarding_welcome_subtitle">Stream music and listen to your local collection.</string>
     <string name="onboarding_permissions_title">Choose your access</string>
     <string name="onboarding_permissions_subtitle">Every permission is optional. Choose what to allow now, or continue and decide later.</string>
-    <string name="onboarding_login_title">Connect YouTube Music</string>
+    <string name="onboarding_login_title">Connect YouTube Music to ZUNO</string>
     <string name="onboarding_login_subtitle">Log in to sync your library and history across devices and get more reliable playback.</string>
     <string name="onboarding_login_optional">Optional. You can log in later from Settings.</string>
     <string name="onboarding_login_benefits_title">Your account helps ZUNO</string>
