@@ -1799,7 +1799,7 @@ private fun LauncherIconPickerSection(
         ) {
             Text("Telefon uygulama simgesi", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Bu seçim telefonun ana ekranındaki ZUNO simgesini değiştirir. Uygulama içi logo seçiminden bağımsızdır. Burada uygulamaya eklenmiş simgeler kullanılabilir.",
+                "Telefon simgesi, uygulama içi logodan bağımsızdır. Yalnızca imzalı APK'ya dahil edilmiş ZUNO Icon Store tasarımları burada seçilebilir; sitede yeni yüklenenler sonraki APK güncellemesine eklenir.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -2060,7 +2060,7 @@ private fun StoreIconChoiceTile(
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Text(
-                text = if (downloading) "İndiriliyor…" else "Kullan",
+                text = if (downloading) "İndiriliyor…" else "Logo olarak kullan",
                 style = MaterialTheme.typography.labelSmall,
             )
         }
