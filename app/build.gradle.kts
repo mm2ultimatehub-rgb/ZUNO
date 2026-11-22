@@ -435,7 +435,7 @@ androidComponents {
         val generateIconPack =
             tasks.register<GenerateIconPackTask>("generate${capitalizedVariantName}IconPack") {
                 metadataFile.set(layout.projectDirectory.file("src/main/iconpack/metadata.json"))
-                svgDirectory.set(layout.projectDirectory.dir("src/main/iconpack/svg"))
+                sourceDirectory.set(layout.projectDirectory.dir("src/main/iconpack/svg"))
                 applicationId.set(variant.applicationId)
                 targetActivityClassName.set("moe.rukamori.archivetune.MainActivity")
                 resourceOutputDirectory.set(
