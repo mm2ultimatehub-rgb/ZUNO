@@ -29,6 +29,8 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.awt.RenderingHints
+import java.awt.image.BufferedImage
 import java.security.MessageDigest
 import javax.imageio.ImageIO
 import javax.xml.parsers.DocumentBuilderFactory
@@ -41,7 +43,7 @@ abstract class GenerateIconPackTask : DefaultTask() {
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val svgDirectory: DirectoryProperty
+    abstract val sourceDirectory: DirectoryProperty
 
     @get:Input
     abstract val applicationId: Property<String>
@@ -100,32 +102,25 @@ abstract class GenerateIconPackTask : DefaultTask() {
                 }
 
                 val sourceFile = resolveSource(source)
-                val analysis = analyzeSvg(sourceFile)
-                val hasIntegratedBackground =
-                    when (backgroundMode.lowercase()) {
-                        "" -> {
-                            analysis.hasIntegratedBackground
-                        }
-
-                        IntegratedBackgroundMode -> {
-                            true
-                        }
-
-                        TransparentBackgroundMode -> {
-                            false
-                        }
-
-                        else -> {
-                            throw GradleException(
-                                "IconPack BackgroundMode \"$backgroundMode\" for Id \"$id\" must be " +
-                                    "\"$IntegratedBackgroundMode\" or \"$TransparentBackgroundMode\".",
-                            )
-                        }
-                    }
                 val drawableName = "icon_pack_$hash"
                 val targetFile = File(resourcesDirectory, "drawable-nodpi/$drawableName.png")
                 targetFile.parentFile.mkdirs()
-                rasterizeSvg(sourceFile, targetFile)
+                val analysis =
+                    if (sourceFile.extension.equals("svg", ignoreCase = true)) {
+                        analyzeSvg(sourceFile).also { rasterizeSvg(sourceFile, targetFile) }
+                    } else {
+                        rasterizeImage(sourceFile, targetFile)
+                    }
+                val hasIntegratedBackground =
+                    when (backgroundMode.lowercase()) {
+                        "" -> analysis.hasIntegratedBackground
+                        IntegratedBackgroundMode -> true
+                        TransparentBackgroundMode -> false
+                        else -> throw GradleException(
+                            "IconPack BackgroundMode \"$backgroundMode\" for Id \"$id\" must be " +
+                                "\"$IntegratedBackgroundMode\" or \"$TransparentBackgroundMode\".",
+                        )
+                    }
                 val backgroundColor =
                     if (configuredBackgroundColor.isEmpty()) {
                         if (hasIntegratedBackground) {
@@ -186,19 +181,59 @@ abstract class GenerateIconPackTask : DefaultTask() {
     }
 
     private fun resolveSource(source: String): File {
-        if (!source.endsWith(".svg", ignoreCase = true) ||
+        val extension = source.substringAfterLast('.', "").lowercase()
+        if (extension !in setOf("svg", "png") ||
             source.contains('/') ||
             source.contains('\\')
         ) {
-            throw GradleException("IconPack Source \"$source\" must be an SVG basename.")
+            throw GradleException("IconPack Source \"$source\" must be an SVG or PNG basename.")
         }
 
-        val root = svgDirectory.get().asFile.canonicalFile
+        val root = sourceDirectory.get().asFile.canonicalFile
         val sourceFile = File(root, source).canonicalFile
         if (sourceFile.parentFile != root || !sourceFile.isFile) {
             throw GradleException("IconPack Source \"$source\" is missing from ${root.path}.")
         }
         return sourceFile
+    }
+
+    private fun rasterizeImage(sourceFile: File, targetFile: File): SvgAnalysis {
+        val source = try {
+            ImageIO.read(sourceFile)
+        } catch (error: Exception) {
+            throw GradleException("Unable to read raster icon \"${sourceFile.name}\".", error)
+        } ?: throw GradleException("Raster icon \"${sourceFile.name}\" is not a supported PNG image.")
+
+        val output = BufferedImage(IconRasterSize, IconRasterSize, BufferedImage.TYPE_INT_ARGB)
+        val graphics = output.createGraphics()
+        try {
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+            val scale = minOf(
+                IconRasterSize.toDouble() / source.width,
+                IconRasterSize.toDouble() / source.height,
+            )
+            val width = (source.width * scale).toInt().coerceAtLeast(1)
+            val height = (source.height * scale).toInt().coerceAtLeast(1)
+            val x = (IconRasterSize - width) / 2
+            val y = (IconRasterSize - height) / 2
+            graphics.drawImage(source, x, y, width, height, null)
+        } finally {
+            graphics.dispose()
+            source.flush()
+        }
+        try {
+            if (!ImageIO.write(output, "png", targetFile)) {
+                throw GradleException("Unable to encode raster icon \"${sourceFile.name}\" as PNG.")
+            }
+        } finally {
+            output.flush()
+        }
+        val cornerColor = targetFile.readOpaqueCornerColor()
+        return SvgAnalysis(
+            hasIntegratedBackground = cornerColor != null,
+            recommendedBackgroundColor = cornerColor ?: DefaultTransparentIconBackground,
+        )
     }
 
     private fun rasterizeSvg(
