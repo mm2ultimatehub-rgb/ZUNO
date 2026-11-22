@@ -1824,7 +1824,7 @@ private fun LogoPickerSection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 storeError != null -> Text(
-                    text = storeError,
+                    text = storeError.orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
