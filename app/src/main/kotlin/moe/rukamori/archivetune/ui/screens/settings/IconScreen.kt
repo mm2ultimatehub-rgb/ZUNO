@@ -266,7 +266,7 @@ fun IconScreen(navController: NavController) {
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
-                title = { Text("ZUNO logo") },
+                title = { Text("Logo ve uygulama simgesi") },
                 navigationIcon = {
                     MaterialIconButton(onClick = { navController.navigateUp() }) {
                         Icon(
@@ -296,7 +296,7 @@ fun IconScreen(navController: NavController) {
                     modifier = Modifier.size(72.dp).clip(RoundedCornerShape(20.dp)),
                 )
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Your ZUNO identity", style = MaterialTheme.typography.titleLarge)
+                    Text("Uygulama içi logo", style = MaterialTheme.typography.titleLarge)
                     Text(
                         "Uygulama içinde kullanılacak orijinal ZUNO logosunu, tasarımlardan birini veya kendi görselini seç. Telefon simgesi bundan bağımsızdır.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -319,6 +319,7 @@ fun IconScreen(navController: NavController) {
             LauncherIconPickerSection(
                 state = launcherState,
                 onSelectIcon = iconViewModel::selectIcon,
+                onRetry = iconViewModel::retry,
                 onResetLauncher = { iconViewModel.selectIcon("default") },
                 onResetBoth = {
                     ZunoLogoStore.selectPreset(context, ZunoLogoCatalog.DefaultId)
@@ -1768,6 +1769,7 @@ private val DefaultIconInset = 6.dp
 private fun LauncherIconPickerSection(
     state: IconScreenState,
     onSelectIcon: (String) -> Unit,
+    onRetry: () -> Unit,
     onResetLauncher: () -> Unit,
     onResetBoth: () -> Unit,
 ) {
@@ -1790,10 +1792,15 @@ private fun LauncherIconPickerSection(
             when (state) {
                 IconScreenState.Loading -> Text("Simge seçenekleri yükleniyor…")
                 IconScreenState.Empty -> Text("Henüz kullanılabilir uygulama simgesi yok.")
-                is IconScreenState.Error -> Text(
-                    stringResource(state.messageResId),
-                    color = MaterialTheme.colorScheme.error,
-                )
+                is IconScreenState.Error -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(state.messageResId),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
+                        Text("Yeniden dene")
+                    }
+                }
                 is IconScreenState.Success -> {
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
