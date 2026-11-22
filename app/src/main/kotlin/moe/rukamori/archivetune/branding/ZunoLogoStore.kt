@@ -101,69 +101,99 @@ object ZunoLogoStore {
 
     fun importCustom(context: Context, uri: Uri): String {
         val appContext = context.applicationContext
-        val directory = customDirectory(appContext).apply { mkdirs() }
-        val source = File(directory, "import_${UUID.randomUUID()}.tmp")
+        val source = File(customDirectory(appContext), "import_${UUID.randomUUID()}.tmp")
         try {
             val resolver = appContext.contentResolver
             resolver.openInputStream(uri)?.use { input ->
                 FileOutputStream(source).use { output ->
-                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                    var total = 0L
-                    while (true) {
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        total += read
-                        require(total <= MaxImportBytes) { "Image is larger than 15 MB." }
-                        output.write(buffer, 0, read)
-                    }
+                    copyLimited(input, output)
                 }
             } ?: error("Unable to open the selected image.")
+            return saveImportedImage(appContext, source)
+        } finally {
+            source.delete()
+        }
+    }
 
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(source.absolutePath, bounds)
-            require(bounds.outWidth > 0 && bounds.outHeight > 0) { "The selected file is not a supported image." }
+    fun importCustomFromBytes(context: Context, bytes: ByteArray): String {
+        require(bytes.isNotEmpty() && bytes.size <= MaxImportBytes) {
+            "Image must be between 1 byte and 15 MB."
+        }
+        val appContext = context.applicationContext
+        val directory = customDirectory(appContext).apply { mkdirs() }
+        val source = File(directory, "store_${UUID.randomUUID()}.tmp")
+        try {
+            FileOutputStream(source).use { output -> output.write(bytes) }
+            return saveImportedImage(appContext, source)
+        } finally {
+            source.delete()
+        }
+    }
 
-            var sampleSize = 1
-            while (bounds.outWidth / sampleSize > MaxImageEdge * 2 ||
-                bounds.outHeight / sampleSize > MaxImageEdge * 2
-            ) {
-                sampleSize *= 2
-            }
-            val bitmap = BitmapFactory.decodeFile(
-                source.absolutePath,
-                BitmapFactory.Options().apply { inSampleSize = sampleSize },
-            ) ?: error("Unable to decode the selected image.")
+    private fun copyLimited(input: java.io.InputStream, output: FileOutputStream) {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0L
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            total += read
+            require(total <= MaxImportBytes) { "Image is larger than 15 MB." }
+            output.write(buffer, 0, read)
+        }
+    }
 
-            val scaled = if (bitmap.width > MaxImageEdge || bitmap.height > MaxImageEdge) {
-                val ratio = minOf(
-                    MaxImageEdge.toFloat() / bitmap.width,
-                    MaxImageEdge.toFloat() / bitmap.height,
-                )
-                Bitmap.createScaledBitmap(
-                    bitmap,
-                    (bitmap.width * ratio).toInt().coerceAtLeast(1),
-                    (bitmap.height * ratio).toInt().coerceAtLeast(1),
-                    true,
-                ).also { if (it !== bitmap) bitmap.recycle() }
-            } else {
-                bitmap
-            }
+    private fun saveImportedImage(context: Context, source: File): String {
+        val directory = customDirectory(context).apply { mkdirs() }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(source.absolutePath, bounds)
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) {
+            "The selected file is not a supported image."
+        }
 
-            val fileName = "custom_${UUID.randomUUID()}.webp"
-            val destination = File(directory, fileName)
+        var sampleSize = 1
+        while (bounds.outWidth / sampleSize > MaxImageEdge * 2 ||
+            bounds.outHeight / sampleSize > MaxImageEdge * 2
+        ) {
+            sampleSize *= 2
+        }
+        val bitmap = BitmapFactory.decodeFile(
+            source.absolutePath,
+            BitmapFactory.Options().apply { inSampleSize = sampleSize },
+        ) ?: error("Unable to decode the selected image.")
+
+        val scaled = if (bitmap.width > MaxImageEdge || bitmap.height > MaxImageEdge) {
+            val ratio = minOf(
+                MaxImageEdge.toFloat() / bitmap.width,
+                MaxImageEdge.toFloat() / bitmap.height,
+            )
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * ratio).toInt().coerceAtLeast(1),
+                (bitmap.height * ratio).toInt().coerceAtLeast(1),
+                true,
+            ).also { if (it !== bitmap) bitmap.recycle() }
+        } else {
+            bitmap
+        }
+
+        val fileName = "custom_${UUID.randomUUID()}.webp"
+        val destination = File(directory, fileName)
+        try {
             FileOutputStream(destination).use { output ->
                 check(scaled.compress(Bitmap.CompressFormat.WEBP, 90, output)) {
                     "Unable to save the selected logo."
                 }
             }
-            scaled.recycle()
-
-            val nextFiles = (mutableState.value.customFileNames + fileName).distinct()
-            persist(appContext, ZunoLogoState("$CustomPrefix$fileName", nextFiles))
-            return fileName
+        } catch (error: Exception) {
+            destination.delete()
+            throw error
         } finally {
-            source.delete()
+            scaled.recycle()
         }
+
+        val nextFiles = (mutableState.value.customFileNames + fileName).distinct()
+        persist(context, ZunoLogoState("custom:$fileName", nextFiles))
+        return fileName
     }
 
     fun deleteCustom(context: Context, fileName: String) {
