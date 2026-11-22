@@ -43,6 +43,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -144,6 +145,7 @@ import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
@@ -174,6 +176,16 @@ fun IconScreen(navController: NavController) {
     val context = LocalContext.current
     LaunchedEffect(context) { ZunoLogoStore.initialize(context) }
     val logoState by ZunoLogoStore.state.collectAsStateWithLifecycle()
+    val iconViewModel: IconViewModel = hiltViewModel()
+    val launcherState by iconViewModel.state.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
+    LaunchedEffect(iconViewModel) {
+        iconViewModel.effects.collect { effect ->
+            when (effect) {
+                is IconScreenEffect.OpenUri -> uriHandler.openUri(effect.uri)
+            }
+        }
+    }
     val scope = rememberCoroutineScope()
     var storeIcons by remember { mutableStateOf<List<ZunoStoreIcon>>(emptyList()) }
     var storeLoading by remember { mutableStateOf(true) }
@@ -222,7 +234,6 @@ fun IconScreen(navController: NavController) {
         }
     }
 
-    val uriHandler = LocalUriHandler.current
     val logoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             scope.launch {
@@ -298,11 +309,20 @@ fun IconScreen(navController: NavController) {
                 onSelectLogo = selectLogo,
                 onAddCustomLogo = addCustomLogo,
                 onDeleteCustomLogo = deleteCustomLogo,
+                onResetLogo = { ZunoLogoStore.selectPreset(context, ZunoLogoCatalog.DefaultId) },
                 storeIcons = storeIcons,
                 storeLoading = storeLoading,
                 storeError = storeError,
                 downloadingStoreIconId = downloadingStoreIconId,
                 onDownloadStoreIcon = downloadStoreIcon,
+            )
+            LauncherIconPickerSection(
+                state = launcherState,
+                onSelectIcon = iconViewModel::selectIcon,
+                onResetBoth = {
+                    ZunoLogoStore.selectPreset(context, ZunoLogoCatalog.DefaultId)
+                    iconViewModel.selectIcon("default")
+                },
             )
             OutlinedButton(
                 onClick = {
@@ -1744,6 +1764,101 @@ private val DefaultIconInset = 6.dp
 
 
 @Composable
+private fun LauncherIconPickerSection(
+    state: IconScreenState,
+    onSelectIcon: (String) -> Unit,
+    onResetBoth: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("Telefon uygulama simgesi", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Bu seçim telefonun ana ekranındaki ZUNO simgesini değiştirir. Uygulama içi logo seçiminden bağımsızdır. Burada uygulamaya eklenmiş simgeler kullanılabilir.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            when (state) {
+                IconScreenState.Loading -> Text("Simge seçenekleri yükleniyor…")
+                IconScreenState.Empty -> Text("Henüz kullanılabilir uygulama simgesi yok.")
+                is IconScreenState.Error -> Text(
+                    stringResource(state.messageResId),
+                    color = MaterialTheme.colorScheme.error,
+                )
+                is IconScreenState.Success -> {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        for (index in 0 until state.model.icons.size) {
+                            val icon = state.model.icons[index]
+                            Column(
+                                modifier = Modifier
+                                    .width(76.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .clickable(
+                                        enabled = state.model.selectionInProgressId == null,
+                                        onClick = { onSelectIcon(icon.id) },
+                                    )
+                                    .padding(4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(5.dp),
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(68.dp)
+                                        .clip(RoundedCornerShape(18.dp))
+                                        .border(
+                                            width = if (icon.isSelected) 2.dp else 1.dp,
+                                            color = if (icon.isSelected) MaterialTheme.colorScheme.primary
+                                                else MaterialTheme.colorScheme.outlineVariant,
+                                            shape = RoundedCornerShape(18.dp),
+                                        )
+                                        .padding(4.dp),
+                                ) {
+                                    Image(
+                                        painter = painterResource(icon.previewDrawableResId),
+                                        contentDescription = icon.name ?: "ZUNO",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)),
+                                    )
+                                }
+                                Text(
+                                    text = if (icon.isDefault) "ZUNO" else icon.name.orEmpty(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                if (icon.isSelected) {
+                                    Text(
+                                        "Seçili",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            OutlinedButton(
+                onClick = onResetBoth,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Her iki logoyu da ZUNO'ya sıfırla")
+            }
+        }
+    }
+}
+
+@Composable
 private fun LogoPickerSection(
     state: ZunoLogoState,
     onSelectLogo: (String) -> Unit,
@@ -1754,6 +1869,7 @@ private fun LogoPickerSection(
     storeError: String? = null,
     downloadingStoreIconId: String? = null,
     onDownloadStoreIcon: (ZunoStoreIcon) -> Unit = {},
+    onResetLogo: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -1778,7 +1894,7 @@ private fun LogoPickerSection(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        text = "Choose a look for the app or add your own image.",
+                        text = "Uygulama içindeki ZUNO logosunu seç veya kendi görselini ekle.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1793,6 +1909,13 @@ private fun LogoPickerSection(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                LogoChoiceTile(
+                    title = "ZUNO",
+                    selected = state.selectedId == ZunoLogoCatalog.DefaultId,
+                    file = null,
+                    drawableResId = R.drawable.zuno_icon,
+                    onClick = { onSelectLogo(ZunoLogoCatalog.DefaultId) },
+                )
                 ZunoLogoCatalog.presets.forEach { preset ->
                     LogoChoiceTile(
                         title = preset.title,
@@ -1811,6 +1934,15 @@ private fun LogoPickerSection(
                     )
                 }
                 AddLogoTile(onClick = onAddCustomLogo)
+            }
+
+            if (onResetLogo != null) {
+                OutlinedButton(
+                    onClick = onResetLogo,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Uygulama içi logoyu sıfırla")
+                }
             }
 
             Text(
@@ -1901,6 +2033,7 @@ private fun LogoChoiceTile(
     selected: Boolean,
     file: java.io.File?,
     onClick: () -> Unit,
+    @DrawableRes drawableResId: Int? = null,
     onDelete: (() -> Unit)? = null,
 ) {
     val shape = RoundedCornerShape(18.dp)
@@ -1922,7 +2055,14 @@ private fun LogoChoiceTile(
                 .clickable(onClick = onClick)
                 .animateContentSize(),
         ) {
-            if (file != null) {
+            if (drawableResId != null) {
+                Image(
+                    painter = painterResource(drawableResId),
+                    contentDescription = title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().padding(3.dp).clip(RoundedCornerShape(15.dp)),
+                )
+            } else if (file != null) {
                 AsyncImage(
                     model = file,
                     contentDescription = title,
