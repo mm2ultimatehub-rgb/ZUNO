@@ -46,6 +46,8 @@ def normalize_image(raw: bytes, mime: str) -> bytes:
 
 def main() -> int:
     ICON_DIR.mkdir(parents=True, exist_ok=True)
+    previous_metadata = METADATA.read_text(encoding="utf-8") if METADATA.exists() else ""
+    assets_changed = False
     headers = {"apikey": PUBLISHABLE_KEY, "Accept": "application/json"}
     endpoint = (
         f"{SUPABASE_URL}/rest/v1/zuno_icon_catalog"
@@ -84,7 +86,10 @@ def main() -> int:
                     raise ValueError("icon exceeds 10 MB")
             png = normalize_image(bytes(content), mime)
             filename = f"store_{hashlib.sha256(icon_id.encode()).hexdigest()[:20]}.png"
-            (ICON_DIR / filename).write_bytes(png)
+            target = ICON_DIR / filename
+            if not target.is_file() or target.read_bytes() != png:
+                assets_changed = True
+            target.write_bytes(png)
             used_files.add(filename)
             title = str(row.get("title") or "ZUNO Icon").strip()[:60]
             author = str(row.get("username") or "ZUNO Creator").strip()[:32]
@@ -102,8 +107,30 @@ def main() -> int:
     for old in ICON_DIR.glob("store_*.png"):
         if re.fullmatch(r"store_[a-f0-9]{20}\.png", old.name) and old.name not in used_files:
             old.unlink()
+            assets_changed = True
 
-    METADATA.write_text(json.dumps(normalized, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    next_metadata = json.dumps(normalized, ensure_ascii=False, indent=2) + "\n"
+    metadata_changed = next_metadata != previous_metadata
+    METADATA.write_text(next_metadata, encoding="utf-8")
+
+    if metadata_changed or assets_changed:
+        gradle_file = ROOT / "app" / "build.gradle.kts"
+        gradle_text = gradle_file.read_text(encoding="utf-8")
+        code_match = re.search(r"(versionCode\s*=\s*)(\d+)", gradle_text)
+        name_match = re.search(r'(versionName\s*=\s*")([0-9]+\.[0-9]+\.)([0-9]+)(")', gradle_text)
+        if not code_match or not name_match:
+            raise RuntimeError("Could not safely increment ZUNO app version for the Store icon update.")
+        next_code = int(code_match.group(2)) + 1
+        next_patch = int(name_match.group(3)) + 1
+        gradle_text = gradle_text[:code_match.start(2)] + str(next_code) + gradle_text[code_match.end(2):]
+        name_match = re.search(r'(versionName\s*=\s*")([0-9]+\.[0-9]+\.)([0-9]+)(")', gradle_text)
+        assert name_match is not None
+        gradle_text = (
+            gradle_text[:name_match.start(3)] + str(next_patch) + gradle_text[name_match.end(3):]
+        )
+        gradle_file.write_text(gradle_text, encoding="utf-8")
+        print(f"Store changed; next signed release will be versionCode {next_code}.")
+
     print(f"Synced {len(normalized)} public Store icons into the next APK.")
     return 0
 
