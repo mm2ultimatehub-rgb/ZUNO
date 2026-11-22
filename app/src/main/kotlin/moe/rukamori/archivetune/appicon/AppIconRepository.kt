@@ -142,7 +142,7 @@ class AppIconRepository
                         author = null,
                         githubAuthorUrl = null,
                         sourceUrl = null,
-                        previewDrawableResId = R.drawable.app_icon_small,
+                        previewDrawableResId = R.drawable.zuno_icon,
                         isDefault = true,
                     ),
                 )
