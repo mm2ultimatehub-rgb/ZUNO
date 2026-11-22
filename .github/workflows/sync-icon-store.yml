@@ -3,7 +3,7 @@ name: Sync ZUNO Icon Store launcher assets
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17,47 * * * *"
+    - cron: "17 * * * *"
 
 permissions:
   contents: write
