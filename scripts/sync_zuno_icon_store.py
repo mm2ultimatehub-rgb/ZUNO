@@ -25,10 +25,11 @@ METADATA = ROOT / "app" / "src" / "main" / "iconpack" / "metadata.json"
 SUPABASE_URL = "https://jlyinisqhkupddyfcdut.supabase.co"
 PUBLISHABLE_KEY = "sb_publishable_sjwsqCho2mlpdzBUFQQ_dQ_2uBeSDwl"
 PUBLIC_HOST = "jlyinisqhkupddyfcdut.supabase.co"
-MAX_ICONS = 24
+MAX_ICONS = 120
 MAX_FILE_BYTES = 10 * 1024 * 1024
 MAX_EDGE = 1024
-ALLOWED_MIME = {"image/png", "image/webp", "image/svg+xml"}
+ALLOWED_MIME = {"image/png", "image/jpeg", "image/webp", "image/svg+xml"}
+ALLOWED_IMAGE_HOSTS = {PUBLIC_HOST, "i.pinimg.com"}
 
 
 def normalize_image(raw: bytes, mime: str) -> bytes:
@@ -70,7 +71,7 @@ def main() -> int:
         asset_url = str(row.get("asset_url") or "").strip()
         mime = str(row.get("mime_type") or "").lower().strip()
         parsed = urlparse(asset_url)
-        if not icon_id or parsed.scheme != "https" or parsed.hostname != PUBLIC_HOST:
+        if not icon_id or parsed.scheme != "https" or parsed.hostname not in ALLOWED_IMAGE_HOSTS:
             continue
         if mime not in ALLOWED_MIME:
             continue
