@@ -31,7 +31,6 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-          cache: pip
 
       - name: Install image conversion dependencies
         run: python -m pip install --upgrade requests pillow cairosvg
