@@ -12,7 +12,9 @@ import io
 import json
 import re
 import sys
+from datetime import datetime, time, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from urllib.parse import urlparse
 
 import cairosvg
@@ -26,7 +28,10 @@ SUPABASE_URL = "https://jlyinisqhkupddyfcdut.supabase.co"
 PUBLISHABLE_KEY = "sb_publishable_sjwsqCho2mlpdzBUFQQ_dQ_2uBeSDwl"
 PUBLIC_HOST = "jlyinisqhkupddyfcdut.supabase.co"
 MAX_ICONS = 120
-MAX_FILE_BYTES = 10 * 1024 * 1024
+MAX_FILE_BYTES = 40 * 1024 * 1024
+DAILY_ICON_THRESHOLD = 20
+LOCAL_TIMEZONE = ZoneInfo("Asia/Baku")
+SYNC_MARKER = ROOT / ".github" / "state" / "zuno-icon-sync-date.txt"
 MAX_EDGE = 1024
 ALLOWED_MIME = {"image/png", "image/jpeg", "image/webp", "image/svg+xml"}
 ALLOWED_IMAGE_HOSTS = {PUBLIC_HOST, "i.pinimg.com"}
@@ -46,10 +51,34 @@ def normalize_image(raw: bytes, mime: str) -> bytes:
 
 
 def main() -> int:
+    now_local = datetime.now(LOCAL_TIMEZONE)
+    run_date = now_local.date().isoformat()
+    if SYNC_MARKER.exists() and SYNC_MARKER.read_text(encoding="utf-8").strip() == run_date:
+        print(f"Daily ZUNO APK update already completed for {run_date}; skipping.")
+        return 0
+
+    local_midnight = datetime.combine(now_local.date(), time.min, tzinfo=LOCAL_TIMEZONE)
+    utc_midnight = local_midnight.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    headers = {"apikey": PUBLISHABLE_KEY, "Accept": "application/json"}
+    daily_response = requests.get(
+        f"{SUPABASE_URL}/rest/v1/zuno_icon_catalog",
+        params={"select": "id,created_at", "created_at": f"gte.{utc_midnight}", "limit": "1000"},
+        headers=headers,
+        timeout=20,
+    )
+    daily_response.raise_for_status()
+    daily_rows = daily_response.json()
+    if not isinstance(daily_rows, list):
+        raise RuntimeError("Daily ZUNO Icon Store count response is not an array.")
+    daily_count = len(daily_rows)
+    print(f"Public icons added today (Asia/Baku): {daily_count}/{DAILY_ICON_THRESHOLD}.")
+    if daily_count < DAILY_ICON_THRESHOLD:
+        print("Daily threshold not reached; no APK version change or build will be triggered.")
+        return 0
+
     ICON_DIR.mkdir(parents=True, exist_ok=True)
     previous_metadata = METADATA.read_text(encoding="utf-8") if METADATA.exists() else ""
     assets_changed = False
-    headers = {"apikey": PUBLISHABLE_KEY, "Accept": "application/json"}
     endpoint = (
         f"{SUPABASE_URL}/rest/v1/zuno_icon_catalog"
         "?select=id,title,username,asset_url,mime_type,file_size,created_at"
@@ -132,7 +161,10 @@ def main() -> int:
         gradle_file.write_text(gradle_text, encoding="utf-8")
         print(f"Store changed; next signed release will be versionCode {next_code}.")
 
+    SYNC_MARKER.parent.mkdir(parents=True, exist_ok=True)
+    SYNC_MARKER.write_text(run_date + "\\n", encoding="utf-8")
     print(f"Synced {len(normalized)} public Store icons into the next APK.")
+    print(f"Daily threshold reached ({daily_count}); this date is marked complete.")
     return 0
 
 
