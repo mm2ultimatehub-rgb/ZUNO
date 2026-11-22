@@ -348,6 +348,7 @@ dependencies {
 
     implementation(libs.coil)
     implementation(libs.coil.gif)
+    implementation("io.coil-kt.coil3:coil-svg:${libs.versions.coil.get()}")
     implementation(libs.coil.network.okhttp)
 
     implementation(libs.shimmer)
