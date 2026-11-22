@@ -91,8 +91,8 @@ object ZunoIconStoreRepository {
             try {
                 check(connection.responseCode in 200..299) { "İkon indirilemedi." }
                 val mimeType = connection.contentType.orEmpty().substringBefore(';').trim().lowercase()
-                require(mimeType in setOf("image/png", "image/jpeg", "image/webp")) {
-                    "Bu ikon biçimi desteklenmiyor. PNG, JPEG veya WebP kullan."
+                require(mimeType in setOf("image/png", "image/jpeg", "image/webp", "image/svg+xml")) {
+                    "Bu ikon biçimi desteklenmiyor. PNG, JPEG, WebP veya SVG kullan."
                 }
                 val declaredLength = connection.contentLengthLong
                 require(declaredLength <= MaxImageBytes || declaredLength < 0) {
