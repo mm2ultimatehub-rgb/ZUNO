@@ -1,0 +1,111 @@
+/*
+ * ZUNO (2026)
+ * Based on ArchiveTune — GPL-3.0 License.
+ * Preserve upstream notices and project license.
+ */
+
+package moe.rukamori.archivetune.branding
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import java.net.HttpURLConnection
+import java.net.URL
+
+data class ZunoStoreIcon(
+    val id: String,
+    val title: String,
+    val description: String,
+    val category: String,
+    val username: String,
+    val assetUrl: String,
+)
+
+object ZunoIconStoreRepository {
+    private const val CatalogUrl =
+        "https://jlyinisqhkupddyfcdut.supabase.co/rest/v1/zuno_icon_catalog" +
+            "?select=id,title,description,category,username,asset_url,created_at" +
+            "&order=created_at.desc&limit=40"
+    // Public Supabase publishable key. Never put a service-role key in the app.
+    private const val PublishableKey = "sb_publishable_sjwsqCho2mlpdzBUFQQ_dQ_2uBeSDwl"
+    private const val StorageHost = "jlyinisqhkupddyfcdut.supabase.co"
+    private const val MaxImageBytes = 15 * 1024 * 1024
+
+    suspend fun fetchCatalog(): List<ZunoStoreIcon> =
+        withContext(Dispatchers.IO) {
+            val connection = (URL(CatalogUrl).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 10_000
+                readTimeout = 10_000
+                setRequestProperty("apikey", PublishableKey)
+                setRequestProperty("Accept", "application/json")
+            }
+            try {
+                check(connection.responseCode in 200..299) {
+                    "ZUNO Icon Store yanıt vermedi (HTTP ${connection.responseCode})."
+                }
+                val rows = JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
+                buildList {
+                    for (index in 0 until rows.length()) {
+                        val row = rows.getJSONObject(index)
+                        val assetUrl = row.optString("asset_url")
+                        if (!isTrustedAssetUrl(assetUrl)) continue
+                        add(
+                            ZunoStoreIcon(
+                                id = row.getString("id"),
+                                title = row.optString("title", "ZUNO icon"),
+                                description = row.optString("description"),
+                                category = row.optString("category"),
+                                username = row.optString("username"),
+                                assetUrl = assetUrl,
+                            ),
+                        )
+                    }
+                }
+            } finally {
+                connection.disconnect()
+            }
+        }
+
+    suspend fun downloadImage(icon: ZunoStoreIcon): ByteArray =
+        withContext(Dispatchers.IO) {
+            require(isTrustedAssetUrl(icon.assetUrl)) { "Güvenilmeyen ikon adresi." }
+            val connection = (URL(icon.assetUrl).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 10_000
+                readTimeout = 20_000
+            }
+            try {
+                check(connection.responseCode in 200..299) { "İkon indirilemedi." }
+                val mimeType = connection.contentType.orEmpty().substringBefore(';').trim().lowercase()
+                require(mimeType in setOf("image/png", "image/jpeg", "image/webp")) {
+                    "Bu ikon biçimi desteklenmiyor. PNG, JPEG veya WebP kullan."
+                }
+                val declaredLength = connection.contentLengthLong
+                require(declaredLength <= MaxImageBytes || declaredLength < 0) {
+                    "İkon 15 MB sınırını aşıyor."
+                }
+                val output = java.io.ByteArrayOutputStream()
+                connection.inputStream.use { input ->
+                    val buffer = ByteArray(8 * 1024)
+                    var total = 0
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        total += read
+                        require(total <= MaxImageBytes) { "İkon 15 MB sınırını aşıyor." }
+                        output.write(buffer, 0, read)
+                    }
+                }
+                output.toByteArray()
+            } finally {
+                connection.disconnect()
+            }
+        }
+
+    private fun isTrustedAssetUrl(value: String): Boolean =
+        runCatching {
+            val url = URL(value)
+            url.protocol == "https" && url.host.equals(StorageHost, ignoreCase = true)
+        }.getOrDefault(false)
+}
