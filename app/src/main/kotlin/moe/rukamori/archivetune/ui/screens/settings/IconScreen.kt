@@ -147,7 +147,9 @@ import androidx.graphics.shapes.RoundedPolygon
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.svg.SvgDecoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -1913,6 +1915,11 @@ private fun LogoPickerSection(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val storeImageLoader = remember(context) {
+        ImageLoader.Builder(context)
+            .components { add(SvgDecoder.Factory()) }
+            .build()
+    }
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
@@ -2012,6 +2019,7 @@ private fun LogoPickerSection(
                     storeIcons.forEach { icon ->
                         StoreIconChoiceTile(
                             icon = icon,
+                            imageLoader = storeImageLoader,
                             downloading = downloadingStoreIconId == icon.id,
                             downloadEnabled = downloadingStoreIconId == null,
                             onDownload = { onDownloadStoreIcon(icon) },
@@ -2026,6 +2034,7 @@ private fun LogoPickerSection(
 @Composable
 private fun StoreIconChoiceTile(
     icon: ZunoStoreIcon,
+    imageLoader: ImageLoader,
     downloading: Boolean,
     downloadEnabled: Boolean,
     onDownload: () -> Unit,
@@ -2037,6 +2046,7 @@ private fun StoreIconChoiceTile(
     ) {
         AsyncImage(
             model = icon.assetUrl,
+            imageLoader = imageLoader,
             contentDescription = icon.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(76.dp).clip(RoundedCornerShape(18.dp)),
