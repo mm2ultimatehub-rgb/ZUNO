@@ -298,7 +298,7 @@ fun IconScreen(navController: NavController) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Your ZUNO identity", style = MaterialTheme.typography.titleLarge)
                     Text(
-                        "Choose one of the eight ZUNO designs or add your own image. Your selection is used throughout the app.",
+                        "Uygulama içinde kullanılacak orijinal ZUNO logosunu, tasarımlardan birini veya kendi görselini seç. Telefon simgesi bundan bağımsızdır.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -319,6 +319,7 @@ fun IconScreen(navController: NavController) {
             LauncherIconPickerSection(
                 state = launcherState,
                 onSelectIcon = iconViewModel::selectIcon,
+                onResetLauncher = { iconViewModel.selectIcon("default") },
                 onResetBoth = {
                     ZunoLogoStore.selectPreset(context, ZunoLogoCatalog.DefaultId)
                     iconViewModel.selectIcon("default")
@@ -1767,6 +1768,7 @@ private val DefaultIconInset = 6.dp
 private fun LauncherIconPickerSection(
     state: IconScreenState,
     onSelectIcon: (String) -> Unit,
+    onResetLauncher: () -> Unit,
     onResetBoth: () -> Unit,
 ) {
     Surface(
@@ -1849,7 +1851,15 @@ private fun LauncherIconPickerSection(
                 }
             }
             OutlinedButton(
+                onClick = onResetLauncher,
+                enabled = state is IconScreenState.Success && state.model.selectionInProgressId == null,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Telefon simgesini ZUNO'ya sıfırla")
+            }
+            OutlinedButton(
                 onClick = onResetBoth,
+                enabled = state is IconScreenState.Success && state.model.selectionInProgressId == null,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Her iki logoyu da ZUNO'ya sıfırla")
@@ -1900,7 +1910,7 @@ private fun LogoPickerSection(
                     )
                 }
                 Text(
-                    text = "${ZunoLogoCatalog.presets.size + state.customFileNames.size}",
+                    text = "${ZunoLogoCatalog.presets.size + state.customFileNames.size + 1}",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
