@@ -7,6 +7,7 @@ on:
       - feature/dalga-glass-player
     paths:
       - app/build.gradle.kts
+      - app/src/main/iconpack/**
   workflow_dispatch:
 
 permissions:
