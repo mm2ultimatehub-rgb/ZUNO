@@ -27,7 +27,7 @@ data class ZunoLogoState(
 data class ZunoLogoPreset(val id: String, val title: String)
 
 object ZunoLogoCatalog {
-    const val DefaultId = "neon"
+    const val DefaultId = "zuno"
 
     val presets = listOf(
         ZunoLogoPreset("anime", "Anime"),
@@ -35,7 +35,7 @@ object ZunoLogoCatalog {
         ZunoLogoPreset("butterfly", "Butterfly"),
         ZunoLogoPreset("slime", "Slime"),
         ZunoLogoPreset("bloom", "Bloom"),
-        ZunoLogoPreset("neon", "ZUNO"),
+        ZunoLogoPreset("neon", "Neon"),
         ZunoLogoPreset("ink", "Ink"),
         ZunoLogoPreset("pixel", "Pixel"),
     )
@@ -74,6 +74,8 @@ object ZunoLogoStore {
         val savedId = preferences.getString(SelectedIdKey, ZunoLogoCatalog.DefaultId)
             ?: ZunoLogoCatalog.DefaultId
         val selectedId = when {
+            savedId == "neon" -> ZunoLogoCatalog.DefaultId
+            savedId == ZunoLogoCatalog.DefaultId -> savedId
             savedId in ZunoLogoCatalog.presets.map(ZunoLogoPreset::id) -> savedId
             savedId.startsWith(CustomPrefix) && savedId.removePrefix(CustomPrefix) in customFiles -> savedId
             else -> ZunoLogoCatalog.DefaultId
@@ -89,7 +91,7 @@ object ZunoLogoStore {
     }
 
     fun selectPreset(context: Context, id: String) {
-        require(ZunoLogoCatalog.presets.any { it.id == id }) { "Unknown ZUNO logo preset." }
+        require(id == ZunoLogoCatalog.DefaultId || ZunoLogoCatalog.presets.any { it.id == id }) { "Unknown ZUNO logo preset." }
         persist(context, ZunoLogoState(id, mutableState.value.customFileNames))
     }
 
@@ -219,7 +221,7 @@ object ZunoLogoStore {
         return if (id.startsWith(CustomPrefix)) {
             customFile(appContext, id.removePrefix(CustomPrefix))
         } else {
-            if (ZunoLogoCatalog.presets.none { it.id == id }) return null
+            if (id == ZunoLogoCatalog.DefaultId || ZunoLogoCatalog.presets.none { it.id == id }) return null
             File(customDirectory(appContext), "preset_$id.webp").takeIf { it.isFile }
         }
     }
