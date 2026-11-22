@@ -1,0 +1,48 @@
+name: Sync ZUNO Icon Store launcher assets
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17,47 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zuno-icon-store-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync public Store icons into the next APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install image conversion dependencies
+        run: python -m pip install --upgrade requests pillow cairosvg
+
+      - name: Download and normalize public Store catalog
+        run: python scripts/sync_zuno_icon_store.py
+
+      - name: Commit changed launcher catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add app/src/main/iconpack/metadata.json app/src/main/iconpack/svg
+          if git diff --cached --quiet; then
+            echo "ZUNO Icon Store has no launcher catalog changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sync public ZUNO Icon Store launcher icons"
+          git push origin HEAD:main
