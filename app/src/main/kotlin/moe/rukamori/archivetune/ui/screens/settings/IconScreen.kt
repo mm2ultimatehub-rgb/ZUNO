@@ -320,6 +320,19 @@ fun IconScreen(navController: NavController) {
                 state = launcherState,
                 onSelectIcon = iconViewModel::selectIcon,
                 onRetry = iconViewModel::retry,
+                onApplyBoth = { drawableResId ->
+                    scope.launch {
+                        runCatching {
+                            withContext(Dispatchers.IO) {
+                                ZunoLogoStore.importCustomFromDrawable(context, drawableResId)
+                            }
+                        }.onSuccess {
+                            Toast.makeText(context, "Seçili simge iki yerde de kullanılıyor.", Toast.LENGTH_LONG).show()
+                        }.onFailure { error ->
+                            Toast.makeText(context, error.message ?: "Simge uygulanamadı.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                },
                 onResetLauncher = { iconViewModel.selectIcon("default") },
                 onResetBoth = {
                     ZunoLogoStore.selectPreset(context, ZunoLogoCatalog.DefaultId)
@@ -1770,6 +1783,7 @@ private fun LauncherIconPickerSection(
     state: IconScreenState,
     onSelectIcon: (String) -> Unit,
     onRetry: () -> Unit,
+    onApplyBoth: (Int) -> Unit,
     onResetLauncher: () -> Unit,
     onResetBoth: () -> Unit,
 ) {
@@ -1855,6 +1869,15 @@ private fun LauncherIconPickerSection(
                             }
                         }
                     }
+                }
+            }
+            if (state is IconScreenState.Success) {
+                OutlinedButton(
+                    onClick = { onApplyBoth(state.model.selectedIcon.previewDrawableResId) },
+                    enabled = state.model.selectionInProgressId == null,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Seçili simgeyi uygulama içinde de kullan")
                 }
             }
             OutlinedButton(
