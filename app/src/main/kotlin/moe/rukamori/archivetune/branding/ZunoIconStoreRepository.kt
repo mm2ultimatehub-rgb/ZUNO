@@ -19,12 +19,14 @@ data class ZunoStoreIcon(
     val category: String,
     val username: String,
     val assetUrl: String,
+    val mimeType: String,
+    val fileSize: Long,
 )
 
 object ZunoIconStoreRepository {
     private const val CatalogUrl =
         "https://jlyinisqhkupddyfcdut.supabase.co/rest/v1/zuno_icon_catalog" +
-            "?select=id,title,description,category,username,asset_url,created_at" +
+            "?select=id,title,description,category,username,asset_url,created_at,mime_type,file_size" +
             "&order=created_at.desc&limit=40"
     // Public Supabase publishable key. Never put a service-role key in the app.
     private const val PublishableKey = "sb_publishable_sjwsqCho2mlpdzBUFQQ_dQ_2uBeSDwl"
@@ -49,7 +51,11 @@ object ZunoIconStoreRepository {
                     for (index in 0 until rows.length()) {
                         val row = rows.getJSONObject(index)
                         val assetUrl = row.optString("asset_url")
+                        val mimeType = row.optString("mime_type").lowercase()
+                        val fileSize = row.optLong("file_size", 0L)
                         if (!isTrustedAssetUrl(assetUrl)) continue
+                        if (mimeType !in setOf("image/png", "image/jpeg", "image/webp")) continue
+                        if (fileSize <= 0L || fileSize > MaxImageBytes) continue
                         add(
                             ZunoStoreIcon(
                                 id = row.getString("id"),
@@ -58,6 +64,8 @@ object ZunoIconStoreRepository {
                                 category = row.optString("category"),
                                 username = row.optString("username"),
                                 assetUrl = assetUrl,
+                                mimeType = mimeType,
+                                fileSize = fileSize,
                             ),
                         )
                     }
