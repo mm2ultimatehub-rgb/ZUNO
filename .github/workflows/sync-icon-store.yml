@@ -2,6 +2,11 @@ name: Sync ZUNO Icon Store launcher assets
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/sync_zuno_icon_store.py"
+      - ".github/workflows/sync-icon-store.yml"
   schedule:
     - cron: "17 * * * *"
 
