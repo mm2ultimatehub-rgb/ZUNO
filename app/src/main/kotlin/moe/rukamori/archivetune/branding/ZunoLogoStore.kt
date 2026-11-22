@@ -101,7 +101,7 @@ object ZunoLogoStore {
 
     fun importCustom(context: Context, uri: Uri): String {
         val appContext = context.applicationContext
-        val source = File(customDirectory(appContext), "import_${UUID.randomUUID()}.tmp")
+        val source = File(customDirectory(appContext).apply { mkdirs() }, "import_${UUID.randomUUID()}.tmp")
         try {
             val resolver = appContext.contentResolver
             resolver.openInputStream(uri)?.use { input ->
@@ -116,7 +116,7 @@ object ZunoLogoStore {
     }
 
     fun importCustomFromBytes(context: Context, bytes: ByteArray): String {
-        require(bytes.isNotEmpty() && bytes.size <= MaxImportBytes) {
+        require(bytes.isNotEmpty() && bytes.size.toLong() <= MaxImportBytes) {
             "Image must be between 1 byte and 15 MB."
         }
         val appContext = context.applicationContext
