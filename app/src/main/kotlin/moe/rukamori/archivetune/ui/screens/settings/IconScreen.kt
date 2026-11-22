@@ -154,6 +154,8 @@ import moe.rukamori.archivetune.branding.ZunoLogoCatalog
 import moe.rukamori.archivetune.branding.ZunoLogoState
 import moe.rukamori.archivetune.branding.ZunoLogoStore
 import moe.rukamori.archivetune.branding.ZunoLogoImage
+import moe.rukamori.archivetune.branding.ZunoIconStoreRepository
+import moe.rukamori.archivetune.branding.ZunoStoreIcon
 import moe.rukamori.archivetune.R
 import moe.rukamori.archivetune.ui.component.BackAwareModalBottomSheet
 import moe.rukamori.archivetune.ui.component.IconButton
@@ -173,6 +175,54 @@ fun IconScreen(navController: NavController) {
     LaunchedEffect(context) { ZunoLogoStore.initialize(context) }
     val logoState by ZunoLogoStore.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    var storeIcons by remember { mutableStateOf<List<ZunoStoreIcon>>(emptyList()) }
+    var storeLoading by remember { mutableStateOf(true) }
+    var storeError by remember { mutableStateOf<String?>(null) }
+    var downloadingStoreIconId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            storeIcons = withContext(Dispatchers.IO) {
+                ZunoIconStoreRepository.fetchCatalog()
+            }
+            storeError = null
+        } catch (error: Exception) {
+            storeError = error.message ?: "ZUNO Icon Store açılamadı."
+        } finally {
+            storeLoading = false
+        }
+    }
+
+    val downloadStoreIcon: (ZunoStoreIcon) -> Unit = remember(context, scope) {
+        { icon ->
+            scope.launch {
+                downloadingStoreIconId = icon.id
+                try {
+                    val bytes = withContext(Dispatchers.IO) {
+                        ZunoIconStoreRepository.downloadImage(icon)
+                    }
+                    withContext(Dispatchers.IO) {
+                        ZunoLogoStore.importCustomFromBytes(context, bytes)
+                    }
+                    Toast.makeText(
+                        context,
+                        "Store ikonu ZUNO logosuna eklendi.",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                } catch (error: Exception) {
+                    Toast.makeText(
+                        context,
+                        error.message ?: "İkon indirilemedi.",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                } finally {
+                    downloadingStoreIconId = null
+                }
+            }
+        }
+    }
+
+    val uriHandler = LocalUriHandler.current
     val logoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             scope.launch {
@@ -248,7 +298,20 @@ fun IconScreen(navController: NavController) {
                 onSelectLogo = selectLogo,
                 onAddCustomLogo = addCustomLogo,
                 onDeleteCustomLogo = deleteCustomLogo,
+                storeIcons = storeIcons,
+                storeLoading = storeLoading,
+                storeError = storeError,
+                downloadingStoreIconId = downloadingStoreIconId,
+                onDownloadStoreIcon = downloadStoreIcon,
             )
+            OutlinedButton(
+                onClick = {
+                    uriHandler.openUri("https://mm2ultimatehub-rgb.github.io/ZUNO-Icon-Store/")
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("ZUNO Icon Store'u aç")
+            }
         }
     }
 }
@@ -1686,6 +1749,11 @@ private fun LogoPickerSection(
     onSelectLogo: (String) -> Unit,
     onAddCustomLogo: () -> Unit,
     onDeleteCustomLogo: (String) -> Unit,
+    storeIcons: List<ZunoStoreIcon> = emptyList(),
+    storeLoading: Boolean = false,
+    storeError: String? = null,
+    downloadingStoreIconId: String? = null,
+    onDownloadStoreIcon: (ZunoStoreIcon) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -1744,6 +1812,85 @@ private fun LogoPickerSection(
                 }
                 AddLogoTile(onClick = onAddCustomLogo)
             }
+
+            Text(
+                text = "ZUNO Icon Store",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            when {
+                storeLoading -> Text(
+                    text = "Topluluk ikonları yükleniyor…",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                storeError != null -> Text(
+                    text = storeError,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                storeIcons.isEmpty() -> Text(
+                    text = "Store'da henüz paylaşılmış ikon yok.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                else -> FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    storeIcons.forEach { icon ->
+                        StoreIconChoiceTile(
+                            icon = icon,
+                            downloading = downloadingStoreIconId == icon.id,
+                            downloadEnabled = downloadingStoreIconId == null,
+                            onDownload = { onDownloadStoreIcon(icon) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StoreIconChoiceTile(
+    icon: ZunoStoreIcon,
+    downloading: Boolean,
+    downloadEnabled: Boolean,
+    onDownload: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.width(112.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        AsyncImage(
+            model = icon.assetUrl,
+            contentDescription = icon.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(76.dp).clip(RoundedCornerShape(18.dp)),
+        )
+        Text(
+            text = icon.title,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = "@${icon.username}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        OutlinedButton(
+            onClick = onDownload,
+            enabled = downloadEnabled,
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+        ) {
+            Text(
+                text = if (downloading) "İndiriliyor…" else "Kullan",
+                style = MaterialTheme.typography.labelSmall,
+            )
         }
     }
 }
