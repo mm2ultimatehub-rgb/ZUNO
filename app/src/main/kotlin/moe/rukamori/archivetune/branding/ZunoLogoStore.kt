@@ -35,7 +35,7 @@ object ZunoLogoCatalog {
         ZunoLogoPreset("butterfly", "Butterfly"),
         ZunoLogoPreset("slime", "Slime"),
         ZunoLogoPreset("bloom", "Bloom"),
-        ZunoLogoPreset("neon", "Neon"),
+        ZunoLogoPreset("neon", "ZUNO"),
         ZunoLogoPreset("ink", "Ink"),
         ZunoLogoPreset("pixel", "Pixel"),
     )
