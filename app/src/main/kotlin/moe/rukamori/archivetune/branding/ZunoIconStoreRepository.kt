@@ -163,6 +163,6 @@ object ZunoIconStoreRepository {
     private fun isTrustedAssetUrl(value: String): Boolean =
         runCatching {
             val url = URL(value)
-            url.protocol == "https" && url.host.equals(StorageHost, ignoreCase = true)
+            url.protocol == "https" && (url.host.equals(StorageHost, ignoreCase = true) || url.host.equals("i.pinimg.com", ignoreCase = true))
         }.getOrDefault(false)
 }
