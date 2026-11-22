@@ -62,7 +62,7 @@ object ZunoIconStoreRepository {
                         val fileSize = row.optLong("file_size", 0L)
                         if (!isTrustedAssetUrl(assetUrl)) continue
                         if (mimeType !in setOf("image/png", "image/jpeg", "image/webp", "image/svg+xml")) continue
-                        if (fileSize <= 0L || fileSize > MaxImageBytes) continue
+                        if (fileSize > MaxImageBytes) continue
                         add(
                             ZunoStoreIcon(
                                 id = row.getString("id"),
