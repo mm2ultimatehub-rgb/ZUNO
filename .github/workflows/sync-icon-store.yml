@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: zuno-icon-store-sync
@@ -26,7 +27,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PAT }}
 
       - uses: actions/setup-python@v7
         with:
@@ -40,6 +40,8 @@ jobs:
 
       - name: Commit changed launcher catalog
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git add app/src/main/iconpack/metadata.json app/src/main/iconpack/svg app/build.gradle.kts
@@ -51,3 +53,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Sync public ZUNO Icon Store launcher icons"
           git push origin HEAD:main
+          gh workflow run zuno-preview.yml --ref main
