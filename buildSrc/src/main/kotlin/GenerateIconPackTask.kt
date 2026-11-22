@@ -504,9 +504,9 @@ abstract class GenerateIconPackTask : DefaultTask() {
             android:name="$packageName.launcher.DefaultIconAlias"
             android:enabled="true"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/zuno_icon"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_round"
+            android:roundIcon="@drawable/zuno_icon"
             android:targetActivity="${targetActivityClassName.get()}">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
