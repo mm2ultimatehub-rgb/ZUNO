@@ -57,7 +57,7 @@ jobs:
           CHANGED_FILES="$(git diff --cached --name-only)"
           git commit -m "Sync public ZUNO Icon Store launcher icons"
           git push origin HEAD:main
-          if printf '%s\\n' "$CHANGED_FILES" | grep -Eq '^app/(build\\.gradle\\.kts|src/main/iconpack/)'; then
+          if printf '%s\n' "$CHANGED_FILES" | grep -Eq '^app/(build\.gradle\.kts|src/main/iconpack/)'; then
             echo "Icon catalog changed; starting the signed APK workflow."
             gh workflow run zuno-preview.yml --ref main
           else
