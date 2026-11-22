@@ -185,6 +185,7 @@ fun IconScreen(navController: NavController) {
         iconViewModel.effects.collect { effect ->
             when (effect) {
                 is IconScreenEffect.OpenUri -> uriHandler.openUri(effect.uri)
+                IconScreenEffect.RestartApp -> context.findActivity()?.recreate()
             }
         }
     }
@@ -193,6 +194,12 @@ fun IconScreen(navController: NavController) {
     var storeLoading by remember { mutableStateOf(true) }
     var storeError by remember { mutableStateOf<String?>(null) }
     var downloadingStoreIconId by remember { mutableStateOf<String?>(null) }
+    val packagedLauncherIconIds = remember(launcherState) {
+        val success = launcherState as? IconScreenState.Success
+        success?.model?.icons?.let { icons ->
+            (0 until icons.size).map { index -> icons[index].id }.toSet()
+        }.orEmpty()
+    }
 
     LaunchedEffect(Unit) {
         try {
@@ -207,7 +214,7 @@ fun IconScreen(navController: NavController) {
         }
     }
 
-    val downloadStoreIcon: (ZunoStoreIcon) -> Unit = remember(context, scope) {
+    val downloadStoreIcon: (ZunoStoreIcon) -> Unit = remember(context, scope, iconViewModel, packagedLauncherIconIds) {
         { icon ->
             scope.launch {
                 downloadingStoreIconId = icon.id
@@ -218,11 +225,20 @@ fun IconScreen(navController: NavController) {
                     withContext(Dispatchers.IO) {
                         ZunoLogoStore.importCustomFromBytes(context, bytes)
                     }
-                    Toast.makeText(
-                        context,
-                        "Store ikonu ZUNO logosuna eklendi.",
-                        Toast.LENGTH_LONG,
-                    ).show()
+                    if (icon.id in packagedLauncherIconIds) {
+                        iconViewModel.selectIcon(icon.id)
+                        Toast.makeText(
+                            context,
+                            "ZUNO logosu ve telefon uygulama simgesi değiştiriliyor. Uygulama yenilenecek.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "ZUNO logosu eklendi. Telefon simgesi olarak kullanmak için bu ikonun yeni APK sürümüne eklenmesi gerekiyor.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
                 } catch (error: Exception) {
                     Toast.makeText(
                         context,
@@ -317,6 +333,7 @@ fun IconScreen(navController: NavController) {
                 storeError = storeError,
                 downloadingStoreIconId = downloadingStoreIconId,
                 onDownloadStoreIcon = downloadStoreIcon,
+                launcherIconIds = packagedLauncherIconIds,
             )
             LauncherIconPickerSection(
                 state = launcherState,
@@ -1911,6 +1928,7 @@ private fun LogoPickerSection(
     storeError: String? = null,
     downloadingStoreIconId: String? = null,
     onDownloadStoreIcon: (ZunoStoreIcon) -> Unit = {},
+    launcherIconIds: Set<String> = emptySet(),
     onResetLogo: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -2022,6 +2040,7 @@ private fun LogoPickerSection(
                             imageLoader = storeImageLoader,
                             downloading = downloadingStoreIconId == icon.id,
                             downloadEnabled = downloadingStoreIconId == null,
+                            launcherIconAvailable = icon.id in launcherIconIds,
                             onDownload = { onDownloadStoreIcon(icon) },
                         )
                     }
@@ -2037,6 +2056,7 @@ private fun StoreIconChoiceTile(
     imageLoader: ImageLoader,
     downloading: Boolean,
     downloadEnabled: Boolean,
+    launcherIconAvailable: Boolean,
     onDownload: () -> Unit,
 ) {
     Column(
@@ -2064,13 +2084,24 @@ private fun StoreIconChoiceTile(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        Text(
+            text = if (launcherIconAvailable) "Telefon simgesi de değişir" else "Telefon simgesi için yeni APK gerekir",
+            style = MaterialTheme.typography.labelSmall,
+            color = if (launcherIconAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            textAlign = TextAlign.Center,
+        )
         OutlinedButton(
             onClick = onDownload,
             enabled = downloadEnabled,
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Text(
-                text = if (downloading) "İndiriliyor…" else "Logo olarak kullan",
+                text = when {
+                    downloading -> "İndiriliyor…"
+                    launcherIconAvailable -> "İki logoya uygula"
+                    else -> "Logo olarak kullan"
+                },
                 style = MaterialTheme.typography.labelSmall,
             )
         }
