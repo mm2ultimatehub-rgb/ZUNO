@@ -113,7 +113,7 @@ def main() -> int:
                     continue
                 content.extend(chunk)
                 if len(content) > MAX_FILE_BYTES:
-                    raise ValueError("icon exceeds 10 MB")
+                    raise ValueError("icon exceeds 40 MB")
             png = normalize_image(bytes(content), mime)
             filename = f"store_{hashlib.sha256(icon_id.encode()).hexdigest()[:20]}.png"
             target = ICON_DIR / filename
