@@ -9,6 +9,8 @@ package moe.rukamori.archivetune.branding
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import androidx.annotation.DrawableRes
 import android.util.Base64
 import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,6 +115,28 @@ object ZunoLogoStore {
             } ?: error("Unable to open the selected image.")
             return saveImportedImage(appContext, source)
         } finally {
+            source.delete()
+        }
+    }
+
+    fun importCustomFromDrawable(context: Context, @DrawableRes drawableResId: Int): String {
+        val appContext = context.applicationContext
+        val directory = customDirectory(appContext).apply { mkdirs() }
+        val source = File(directory, "launcher_" + UUID.randomUUID() + ".tmp")
+        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
+        try {
+            val drawable = appContext.getDrawable(drawableResId)
+                ?: error("Unable to load the selected launcher icon.")
+            drawable.setBounds(0, 0, bitmap.width, bitmap.height)
+            drawable.draw(Canvas(bitmap))
+            FileOutputStream(source).use { output ->
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) {
+                    "Unable to prepare the selected launcher icon."
+                }
+            }
+            return saveImportedImage(appContext, source)
+        } finally {
+            bitmap.recycle()
             source.delete()
         }
     }
