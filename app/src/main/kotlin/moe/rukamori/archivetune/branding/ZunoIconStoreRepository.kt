@@ -6,6 +6,11 @@
 
 package moe.rukamori.archivetune.branding
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import com.caverock.androidsvg.SVG
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -54,7 +59,7 @@ object ZunoIconStoreRepository {
                         val mimeType = row.optString("mime_type").lowercase()
                         val fileSize = row.optLong("file_size", 0L)
                         if (!isTrustedAssetUrl(assetUrl)) continue
-                        if (mimeType !in setOf("image/png", "image/jpeg", "image/webp")) continue
+                        if (mimeType !in setOf("image/png", "image/jpeg", "image/webp", "image/svg+xml")) continue
                         if (fileSize <= 0L || fileSize > MaxImageBytes) continue
                         add(
                             ZunoStoreIcon(
@@ -105,7 +110,25 @@ object ZunoIconStoreRepository {
                         output.write(buffer, 0, read)
                     }
                 }
-                output.toByteArray()
+                val downloaded = output.toByteArray()
+                if (mimeType == "image/svg+xml") {
+                    val picture = SVG.getFromInputStream(ByteArrayInputStream(downloaded))
+                        .renderToPicture(1024, 1024)
+                    val bitmap = Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888)
+                    try {
+                        Canvas(bitmap).drawPicture(picture)
+                        ByteArrayOutputStream().use { png ->
+                            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, png)) {
+                                "SVG görseli PNG biçimine dönüştürülemedi."
+                            }
+                            png.toByteArray()
+                        }
+                    } finally {
+                        bitmap.recycle()
+                    }
+                } else {
+                    downloaded
+                }
             } finally {
                 connection.disconnect()
             }
