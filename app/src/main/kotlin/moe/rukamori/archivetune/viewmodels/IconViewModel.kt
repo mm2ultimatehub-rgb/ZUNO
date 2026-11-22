@@ -45,6 +45,8 @@ sealed interface IconScreenEffect {
     data class OpenUri(
         val uri: String,
     ) : IconScreenEffect
+
+    data object RestartApp : IconScreenEffect
 }
 
 @Immutable
@@ -132,6 +134,7 @@ class IconViewModel
                 viewModelScope.launch {
                     try {
                         _state.value = selectAppIcon(iconId).toScreenState()
+                        _effects.emit(IconScreenEffect.RestartApp)
                     } catch (error: CancellationException) {
                         throw error
                     } catch (_: Exception) {
