@@ -14,6 +14,7 @@ import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -36,6 +37,7 @@ object ZunoIconStoreRepository {
     // Public Supabase publishable key. Never put a service-role key in the app.
     private const val PublishableKey = "sb_publishable_sjwsqCho2mlpdzBUFQQ_dQ_2uBeSDwl"
     private const val StorageHost = "jlyinisqhkupddyfcdut.supabase.co"
+    private const val SupabaseFunctionsUrl = "https://jlyinisqhkupddyfcdut.supabase.co/functions/v1"
     private const val MaxImageBytes = 15 * 1024 * 1024
 
     suspend fun fetchCatalog(): List<ZunoStoreIcon> =
@@ -111,28 +113,52 @@ object ZunoIconStoreRepository {
                     }
                 }
                 val downloaded = output.toByteArray()
-                if (mimeType == "image/svg+xml") {
-                    val picture = SVG.getFromInputStream(ByteArrayInputStream(downloaded))
-                        .renderToPicture(1024, 1024)
-                    val bitmap = Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888)
-                    try {
-                        Canvas(bitmap).drawPicture(picture)
-                        ByteArrayOutputStream().use { png ->
-                            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, png)) {
-                                "SVG görseli PNG biçimine dönüştürülemedi."
+                val imageBytes =
+                    if (mimeType == "image/svg+xml") {
+                        val picture = SVG.getFromInputStream(ByteArrayInputStream(downloaded))
+                            .renderToPicture(1024, 1024)
+                        val bitmap = Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888)
+                        try {
+                            Canvas(bitmap).drawPicture(picture)
+                            ByteArrayOutputStream().use { png ->
+                                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, png)) {
+                                    "SVG görseli PNG biçimine dönüştürülemedi."
+                                }
+                                png.toByteArray()
                             }
-                            png.toByteArray()
+                        } finally {
+                            bitmap.recycle()
                         }
-                    } finally {
-                        bitmap.recycle()
+                    } else {
+                        downloaded
                     }
-                } else {
-                    downloaded
-                }
+                runCatching { recordDownload(icon.id) }
+                imageBytes
             } finally {
                 connection.disconnect()
             }
         }
+
+    private fun recordDownload(iconId: String) {
+        val connection =
+            (URL("$SupabaseFunctionsUrl/zuno-record-download").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = 5_000
+                readTimeout = 5_000
+                doOutput = true
+                setRequestProperty("apikey", PublishableKey)
+                setRequestProperty("Authorization", "Bearer $PublishableKey")
+                setRequestProperty("Content-Type", "application/json")
+            }
+        try {
+            connection.outputStream.use { output ->
+                output.write(JSONObject().put("icon_id", iconId).toString().toByteArray(Charsets.UTF_8))
+            }
+            connection.responseCode
+        } finally {
+            connection.disconnect()
+        }
+    }
 
     private fun isTrustedAssetUrl(value: String): Boolean =
         runCatching {
