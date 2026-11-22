@@ -31,21 +31,13 @@ data class ZunoLogoPreset(val id: String, val title: String)
 object ZunoLogoCatalog {
     const val DefaultId = "zuno"
 
-    val presets = listOf(
-        ZunoLogoPreset("anime", "Anime"),
-        ZunoLogoPreset("ornate", "Ornate"),
-        ZunoLogoPreset("butterfly", "Butterfly"),
-        ZunoLogoPreset("slime", "Slime"),
-        ZunoLogoPreset("bloom", "Bloom"),
-        ZunoLogoPreset("neon", "Neon"),
-        ZunoLogoPreset("ink", "Ink"),
-        ZunoLogoPreset("pixel", "Pixel"),
-    )
+    // ZUNO Icon Store is the only community-logo source. Keep only the official default here.
+    val presets = emptyList<ZunoLogoPreset>()
 }
 
 /**
- * Keeps the selected in-app brand mark and imported logo files in private app storage.
- * These are UI logos; Android launcher aliases remain managed by the existing icon pack.
+ * Keeps the selected in-app brand mark and ZUNO Icon Store imports in private app storage.
+ * Android launcher icons are compiled separately from the same Store catalog during APK builds.
  */
 object ZunoLogoStore {
     private const val PreferencesName = "zuno_logo_preferences"
