@@ -162,7 +162,7 @@ def main() -> int:
         print(f"Store changed; next signed release will be versionCode {next_code}.")
 
     SYNC_MARKER.parent.mkdir(parents=True, exist_ok=True)
-    SYNC_MARKER.write_text(run_date + "\\n", encoding="utf-8")
+    SYNC_MARKER.write_text(run_date + "\n", encoding="utf-8")
     print(f"Synced {len(normalized)} public Store icons into the next APK.")
     print(f"Daily threshold reached ({daily_count}); this date is marked complete.")
     return 0
