@@ -31,4 +31,6 @@
     <string name="search_library">Kitabxanada axtarın</string>
     <string name="filter_library">Kitabxana</string>
     <string name="filter_liked">Bəyənilənlər</string>
+    <string name="send_to_zuno_music">ZUNO Music-ə göndər</string>
+    <string name="zuno_music_app_not_installed">ZUNO Music quraşdırılmayıb.</string>
 </resources>

@@ -1472,4 +1472,6 @@
         <item quantity="other">%d songs couldn\'t be imported</item>
     </plurals>
     <string name="import_result_failed_items">Couldn\'t import</string>
+    <string name="send_to_zuno_music">Open in ZUNO Music</string>
+    <string name="zuno_music_app_not_installed">ZUNO Music is not installed.</string>
 </resources>
