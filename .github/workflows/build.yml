@@ -53,6 +53,7 @@ jobs:
     needs: notifyTelegram
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - device: mobile
