@@ -342,7 +342,12 @@ jobs:
           R2_BUCKET: ${{ vars.R2_BUCKET }}
           APK_PATH: ${{ steps.release_dir.outputs.release_dir }}/out/${{ steps.variant.outputs.apk_name }}
           APK_NAME: ${{ steps.variant.outputs.apk_name }}
-        run: bash .github/scripts/publish-early-access.sh
+        run: |
+          if [[ -z "${AWS_ACCESS_KEY_ID:-}" || -z "${AWS_SECRET_ACCESS_KEY:-}" || -z "${R2_ACCOUNT_ID:-}" || -z "${R2_BUCKET:-}" ]]; then
+            echo "::notice::Private R2 publishing skipped because its credentials or bucket variables are not configured. The signed APK artifact is still available in this workflow run."
+            exit 0
+          fi
+          bash .github/scripts/publish-early-access.sh
 
   finalizeEarlyAccess:
     name: Finalize Build and Enforce R2 Retention
@@ -357,7 +362,12 @@ jobs:
           AWS_DEFAULT_REGION: auto
           R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
           R2_BUCKET: ${{ vars.R2_BUCKET }}
-        run: python3 .github/scripts/finalize-early-access.py
+        run: |
+          if [[ -z "${AWS_ACCESS_KEY_ID:-}" || -z "${AWS_SECRET_ACCESS_KEY:-}" || -z "${R2_ACCOUNT_ID:-}" || -z "${R2_BUCKET:-}" ]]; then
+            echo "::notice::R2 retention cleanup skipped because private R2 is not configured. APK artifacts remain available through GitHub Actions."
+            exit 0
+          fi
+          python3 .github/scripts/finalize-early-access.py
 
   notifyDiscord:
     name: Announce complete Early Access build
