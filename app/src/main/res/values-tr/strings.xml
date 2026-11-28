@@ -587,4 +587,6 @@
     <string name="together_requesting_song_change">Yöneticiye şarkıyı değiştirmesi talep ediliyor…</string>
     <string name="together_song_change_failed">Şarkı değişimi uygulanmadı. Lütfen tekrar deneyin</string>
     <string name="onboarding_login_title">YouTube Music hesabını ZUNO uygulamasına bağla</string>
+    <string name="send_to_zuno_music">ZUNO Music'e gönder</string>
+    <string name="zuno_music_app_not_installed">ZUNO Music yüklü değil.</string>
 </resources>
