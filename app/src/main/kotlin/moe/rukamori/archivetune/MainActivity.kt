@@ -2951,8 +2951,14 @@ class MainActivity : ComponentActivity() {
                 }.onSuccess { queued ->
                     val queuedById = queued.associateBy { it.id }
                     val mediaItems =
-                        videoIds.mapNotNull { videoId ->
+                        videoIds.map { videoId ->
                             queuedById[videoId]?.toMediaItem()
+                                ?: MediaItem
+                                    .Builder()
+                                    .setMediaId(videoId)
+                                    .setUri(videoId)
+                                    .setCustomCacheKey(videoId)
+                                    .build()
                         }
                     if (mediaItems.isNotEmpty()) {
                         pendingDeepLinkQueue = ListQueue(items = mediaItems)
