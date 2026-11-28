@@ -53,6 +53,7 @@ jobs:
     needs: notifyTelegram
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - device: mobile
@@ -324,6 +325,13 @@ jobs:
           fi
           mv "${SIGNED_APKS[0]}" "$RELEASE_DIR/out/${{ steps.variant.outputs.apk_name }}"
   
+      - name: Upload signed APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.variant.outputs.apk_name }}
+          path: ${{ steps.release_dir.outputs.release_dir }}/out/${{ steps.variant.outputs.apk_name }}
+          if-no-files-found: error
+          retention-days: 14
       - name: Publish Signed Release APK to Private R2
         shell: bash
         env:

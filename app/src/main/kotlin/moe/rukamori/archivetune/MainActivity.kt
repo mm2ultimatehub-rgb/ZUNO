@@ -2932,6 +2932,46 @@ class MainActivity : ComponentActivity() {
             return
         }
 
+        // ZUNO Music can hand its YouTube Music queue to this app so playback
+        // continues through the native Media3 foreground service and media session.
+        if (uri.scheme.equals("zuno", ignoreCase = true) && authority == "play") {
+            val videoIds =
+                uri.getQueryParameter("ids")
+                    .orEmpty()
+                    .split(',')
+                    .map(String::trim)
+                    .filter { it.matches(Regex("^[A-Za-z0-9_-]{11}$")) }
+                    .distinct()
+                    .take(50)
+            if (videoIds.isEmpty()) return
+
+            coroutineScope.launch {
+                withContext(Dispatchers.IO) {
+                    YouTube.queue(videoIds, null)
+                }.onSuccess { queued ->
+                    val queuedById = queued.associateBy { it.id }
+                    val mediaItems =
+                        videoIds.map { videoId ->
+                            queuedById[videoId]?.toMediaItem()
+                                ?: MediaItem
+                                    .Builder()
+                                    .setMediaId(videoId)
+                                    .setUri(videoId)
+                                    .setCustomCacheKey(videoId)
+                                    .build()
+                        }
+                    if (mediaItems.isNotEmpty()) {
+                        pendingDeepLinkQueue = ListQueue(items = mediaItems)
+                        startMusicServiceSafely()
+                        playPendingDeepLinkQueueIfReady()
+                    }
+                }.onFailure { throwable ->
+                    reportException(throwable)
+                }
+            }
+            return
+        }
+
         when (val path = uri.pathSegments.firstOrNull()) {
             "playlist" -> {
                 uri.getQueryParameter("list")?.let { playlistId ->
