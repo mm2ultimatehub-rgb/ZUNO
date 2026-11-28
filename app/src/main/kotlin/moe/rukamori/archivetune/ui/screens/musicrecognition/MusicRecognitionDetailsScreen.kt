@@ -15,6 +15,7 @@ package moe.rukamori.archivetune.ui.screens.musicrecognition
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -95,6 +96,32 @@ fun MusicRecognitionDetailsScreen(
     val onSearch = remember(viewModel) { viewModel::onSearchRequested }
     val onListenAgain = remember(viewModel) { viewModel::onListenAgainRequested }
     val onShazam = remember(viewModel) { viewModel::onShazamRequested }
+    val onSendToZunoMusic: (RecognizedTrackUiModel) -> Unit = remember(context) {
+        { track ->
+            val importUri =
+                Uri.Builder()
+                    .scheme("zunomusic")
+                    .authority("import")
+                    .appendQueryParameter("title", track.title)
+                    .appendQueryParameter("artist", track.artist)
+                    .apply { track.album?.let { appendQueryParameter("album", it) } }
+                    .apply { track.artworkUrl?.let { appendQueryParameter("artwork", it) } }
+                    .apply { track.isrc?.let { appendQueryParameter("isrc", it) } }
+                    .build()
+            val intent =
+                Intent(Intent.ACTION_VIEW, importUri)
+                    .setPackage("com.mm2vault.zunomusic")
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            runCatching { context.startActivity(intent) }
+                .onFailure {
+                    Toast.makeText(
+                        context,
+                        R.string.zuno_music_app_not_installed,
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+        }
+    }
     LaunchedEffect(viewModel, navController, context, lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.events.collect { event ->
@@ -114,7 +141,7 @@ fun MusicRecognitionDetailsScreen(
             }
         }
     }
-    MusicRecognitionDetailsContent(state, onBack, onSearch, onListenAgain, onShazam)
+    MusicRecognitionDetailsContent(state, onBack, onSearch, onListenAgain, onShazam, onSendToZunoMusic)
 }
 
 @Composable
@@ -124,6 +151,7 @@ private fun MusicRecognitionDetailsContent(
     onSearch: () -> Unit,
     onListenAgain: () -> Unit,
     onShazam: () -> Unit,
+    onSendToZunoMusic: (RecognizedTrackUiModel) -> Unit,
 ) {
     val scrollBehavior = appBarScrollBehavior()
     val wide = currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(
@@ -170,7 +198,7 @@ private fun MusicRecognitionDetailsContent(
                             }
                         }
                         is MusicRecognitionDetailsState.Success -> {
-                            RecognitionResultContent(state.track, wide, onSearch, onListenAgain, onShazam)
+                            RecognitionResultContent(state.track, wide, onSearch, onListenAgain, onShazam, onSendToZunoMusic)
                         }
                         MusicRecognitionDetailsState.Empty, MusicRecognitionDetailsState.Error -> {
                             Surface(
@@ -216,6 +244,7 @@ private fun RecognitionResultContent(
     onSearch: () -> Unit,
     onListenAgain: () -> Unit,
     onShazam: () -> Unit,
+    onSendToZunoMusic: (RecognizedTrackUiModel) -> Unit,
 ) {
     if (wide) {
         Row(
@@ -226,7 +255,7 @@ private fun RecognitionResultContent(
                 CoverArt(track.artworkUrl, minOf(320.dp, maxWidth))
             }
             RecognitionSongInformation(
-                track, onSearch, onListenAgain, onShazam,
+                track, onSearch, onListenAgain, onShazam, onSendToZunoMusic,
                 modifier = Modifier.weight(1.1f),
             )
         }
@@ -235,7 +264,7 @@ private fun RecognitionResultContent(
             BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CoverArt(track.artworkUrl, minOf(240.dp, maxWidth))
             }
-            RecognitionSongInformation(track, onSearch, onListenAgain, onShazam)
+            RecognitionSongInformation(track, onSearch, onListenAgain, onShazam, onSendToZunoMusic)
         }
     }
 }
@@ -246,6 +275,7 @@ private fun RecognitionSongInformation(
     onSearch: () -> Unit,
     onListenAgain: () -> Unit,
     onShazam: () -> Unit,
+    onSendToZunoMusic: (RecognizedTrackUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -283,6 +313,15 @@ private fun RecognitionSongInformation(
                 Icon(painterResource(R.drawable.replay), null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                 Text(stringResource(R.string.music_recognition_listen_again))
+            }
+            OutlinedButton(
+                onClick = { onSendToZunoMusic(track) },
+                modifier = Modifier.heightIn(min = 56.dp),
+                shapes = ButtonDefaults.shapes(),
+            ) {
+                Icon(painterResource(R.drawable.share), null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.send_to_zuno_music))
             }
         }
         if (track.album != null || track.metadata.isNotBlank() || track.label != null || track.isrc != null) {
